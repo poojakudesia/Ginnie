@@ -1,0 +1,30 @@
+# Environment
+.env
+*.env
+!*.env.example
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# Node
+node_modules/
+dist/
+.cache/
+
+# DB
+*.db
+*.sqlite3
+
+# Misc
+.DS_Store
+*.log
