@@ -3,6 +3,7 @@ export interface User {
   email: string;
   name: string;
   avatar_url?: string;
+  phone?: string;
   familiarity: 'explorer' | 'catalyst' | 'master';
   xp: number;
   streak_count: number;

@@ -4,8 +4,8 @@ import { User } from '../types';
 export interface SignupPayload {
   name: string;
   email: string;
+  password: string;
   phone?: string;
-  password?: string;
 }
 
 export interface LoginPayload {
@@ -14,8 +14,9 @@ export interface LoginPayload {
 }
 
 export interface AuthResponse {
+  access_token: string;
+  token_type: string;
   user: User;
-  token: string;
 }
 
 export const signup = async (payload: SignupPayload): Promise<AuthResponse> => {
@@ -28,8 +29,33 @@ export const login = async (payload: LoginPayload): Promise<AuthResponse> => {
   return data;
 };
 
-export const oauthGoogle = async (token: string): Promise<AuthResponse> => {
-  const { data } = await client.post<AuthResponse>('/auth/google', { token });
+export const oauthGoogle = async (idToken: string, name?: string, avatarUrl?: string): Promise<AuthResponse> => {
+  const { data } = await client.post<AuthResponse>('/auth/oauth/google', {
+    provider: 'google',
+    id_token: idToken,
+    name,
+    avatar_url: avatarUrl,
+  });
+  return data;
+};
+
+export const oauthFacebook = async (accessToken: string, name?: string, email?: string): Promise<AuthResponse> => {
+  const { data } = await client.post<AuthResponse>('/auth/oauth/facebook', {
+    provider: 'facebook',
+    id_token: accessToken,
+    name,
+    email,
+  });
+  return data;
+};
+
+export const oauthApple = async (idToken: string, name?: string, email?: string): Promise<AuthResponse> => {
+  const { data } = await client.post<AuthResponse>('/auth/oauth/apple', {
+    provider: 'apple',
+    id_token: idToken,
+    name,
+    email,
+  });
   return data;
 };
 
@@ -39,6 +65,6 @@ export const getMe = async (): Promise<User> => {
 };
 
 export const updateMe = async (payload: Partial<User>): Promise<User> => {
-  const { data } = await client.patch<User>('/auth/me', payload);
+  const { data } = await client.put<User>('/auth/me', payload);
   return data;
 };

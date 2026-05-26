@@ -21,6 +21,7 @@ class User(Base):
     name: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     hashed_password: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
     avatar_url: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
+    phone: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
 
     # OAuth fields
     oauth_provider: Mapped[Optional[str]] = mapped_column(
