@@ -2,40 +2,38 @@ import React, { useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAppStore, applyPalette } from './store/app';
+import { useAuthStore } from './store/auth';
 import { IOSFrame } from './components/IOSFrame';
 import { DLTabBar } from './components/DLTabBar';
 import {
-  WelcomeScreen,
-  SignInScreen,
-  ProfileSetupScreen,
-  WishBuilderScreen,
-  WishesSummaryScreen,
-  QuestionsScreen,
-  TechniquePickerScreen,
-  TutorialScreen,
-  HomeScreen,
-  AffirmScreen,
-  VizScreen,
-  MovieScreen,
-  FeedScreen,
-  PathScreen,
-  ProfileScreen,
+  WelcomeScreen, SignInScreen, ProfileSetupScreen,
+  WishBuilderScreen, WishesSummaryScreen, QuestionsScreen,
+  TechniquePickerScreen, TutorialScreen, HomeScreen,
+  AffirmScreen, VizScreen, MovieScreen, FeedScreen,
+  PathScreen, ProfileScreen,
 } from './screens';
 
 const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: 1, staleTime: 30_000 },
-  },
+  defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
 
+// Screens that don't require auth
+const PUBLIC_SCREENS = new Set(['welcome', 'signin']);
+// Screens that show the bottom tab bar
 const TABBED_SCREENS = new Set(['home', 'movie', 'affirm', 'journey', 'profile', 'feed']);
 
 function AppContent() {
   const { screen, goto, palette } = useAppStore();
+  const token = useAuthStore((s) => s.token);
 
+  useEffect(() => { applyPalette(palette); }, [palette]);
+
+  // Route protection: if no token and trying to access protected screen, redirect to signin
   useEffect(() => {
-    applyPalette(palette);
-  }, [palette]);
+    if (!token && !PUBLIC_SCREENS.has(screen)) {
+      goto('signin');
+    }
+  }, [screen, token, goto]);
 
   const renderScreen = () => {
     switch (screen) {
