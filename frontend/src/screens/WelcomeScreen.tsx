@@ -111,7 +111,7 @@ export const WelcomeScreen: React.FC = () => {
 
         <div style={{ textAlign: 'center', maxWidth: 280 }}>
           <DLDisplay size="sm" center>
-            Hi, I'm Aura —
+            Hi, I'm your personal Ginnie —
           </DLDisplay>
           <p
             style={{
@@ -147,7 +147,7 @@ export const WelcomeScreen: React.FC = () => {
           fullWidth
           onClick={() => goto('signin')}
         >
-          Meet Ginnie ✦
+          Let's Begin ✦
         </DLButton>
         <button
           onClick={() => goto('signin')}

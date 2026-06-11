@@ -1,6 +1,6 @@
 import React, { CSSProperties, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
-import { signup, login, oauthGoogle, oauthFacebook, oauthApple } from '../api/auth';
+import { signup, login, oauthGoogle, oauthFacebook } from '../api/auth';
 import { DLScreen } from '../components/DLScreen';
 import { useAppStore } from '../store/app';
 import { useAuthStore } from '../store/auth';
@@ -12,29 +12,31 @@ interface Country {
   flag: string;
   name: string;
   digits: string[];
+  minLen: number;
+  maxLen: number;
 }
 
 const COUNTRIES: Country[] = [
-  { code: '+1',   flag: '🇺🇸', name: 'US',  digits: ['1'] },
-  { code: '+1',   flag: '🇨🇦', name: 'CA',  digits: [] },
-  { code: '+44',  flag: '🇬🇧', name: 'GB',  digits: ['44'] },
-  { code: '+91',  flag: '🇮🇳', name: 'IN',  digits: ['91'] },
-  { code: '+61',  flag: '🇦🇺', name: 'AU',  digits: ['61'] },
-  { code: '+86',  flag: '🇨🇳', name: 'CN',  digits: ['86'] },
-  { code: '+49',  flag: '🇩🇪', name: 'DE',  digits: ['49'] },
-  { code: '+33',  flag: '🇫🇷', name: 'FR',  digits: ['33'] },
-  { code: '+81',  flag: '🇯🇵', name: 'JP',  digits: ['81'] },
-  { code: '+55',  flag: '🇧🇷', name: 'BR',  digits: ['55'] },
-  { code: '+7',   flag: '🇷🇺', name: 'RU',  digits: ['7'] },
-  { code: '+971', flag: '🇦🇪', name: 'AE',  digits: ['971'] },
-  { code: '+65',  flag: '🇸🇬', name: 'SG',  digits: ['65'] },
-  { code: '+82',  flag: '🇰🇷', name: 'KR',  digits: ['82'] },
-  { code: '+52',  flag: '🇲🇽', name: 'MX',  digits: ['52'] },
-  { code: '+34',  flag: '🇪🇸', name: 'ES',  digits: ['34'] },
-  { code: '+39',  flag: '🇮🇹', name: 'IT',  digits: ['39'] },
-  { code: '+31',  flag: '🇳🇱', name: 'NL',  digits: ['31'] },
-  { code: '+27',  flag: '🇿🇦', name: 'ZA',  digits: ['27'] },
-  { code: '+92',  flag: '🇵🇰', name: 'PK',  digits: ['92'] },
+  { code: '+1',   flag: '🇺🇸', name: 'US',  digits: ['1'],   minLen: 10, maxLen: 10 },
+  { code: '+1',   flag: '🇨🇦', name: 'CA',  digits: [],      minLen: 10, maxLen: 10 },
+  { code: '+44',  flag: '🇬🇧', name: 'GB',  digits: ['44'],  minLen: 10, maxLen: 10 },
+  { code: '+91',  flag: '🇮🇳', name: 'IN',  digits: ['91'],  minLen: 10, maxLen: 10 },
+  { code: '+61',  flag: '🇦🇺', name: 'AU',  digits: ['61'],  minLen: 9,  maxLen: 9  },
+  { code: '+86',  flag: '🇨🇳', name: 'CN',  digits: ['86'],  minLen: 11, maxLen: 11 },
+  { code: '+49',  flag: '🇩🇪', name: 'DE',  digits: ['49'],  minLen: 10, maxLen: 11 },
+  { code: '+33',  flag: '🇫🇷', name: 'FR',  digits: ['33'],  minLen: 9,  maxLen: 9  },
+  { code: '+81',  flag: '🇯🇵', name: 'JP',  digits: ['81'],  minLen: 10, maxLen: 11 },
+  { code: '+55',  flag: '🇧🇷', name: 'BR',  digits: ['55'],  minLen: 10, maxLen: 11 },
+  { code: '+7',   flag: '🇷🇺', name: 'RU',  digits: ['7'],   minLen: 10, maxLen: 10 },
+  { code: '+971', flag: '🇦🇪', name: 'AE',  digits: ['971'], minLen: 9,  maxLen: 9  },
+  { code: '+65',  flag: '🇸🇬', name: 'SG',  digits: ['65'],  minLen: 8,  maxLen: 8  },
+  { code: '+82',  flag: '🇰🇷', name: 'KR',  digits: ['82'],  minLen: 9,  maxLen: 11 },
+  { code: '+52',  flag: '🇲🇽', name: 'MX',  digits: ['52'],  minLen: 10, maxLen: 10 },
+  { code: '+34',  flag: '🇪🇸', name: 'ES',  digits: ['34'],  minLen: 9,  maxLen: 9  },
+  { code: '+39',  flag: '🇮🇹', name: 'IT',  digits: ['39'],  minLen: 9,  maxLen: 10 },
+  { code: '+31',  flag: '🇳🇱', name: 'NL',  digits: ['31'],  minLen: 9,  maxLen: 9  },
+  { code: '+27',  flag: '🇿🇦', name: 'ZA',  digits: ['27'],  minLen: 9,  maxLen: 9  },
+  { code: '+92',  flag: '🇵🇰', name: 'PK',  digits: ['92'],  minLen: 10, maxLen: 10 },
 ];
 
 // ─── Validation helpers ──────────────────────────────────────────────────────
@@ -338,8 +340,15 @@ export const SignInScreen: React.FC = () => {
     if (!confirm)                   errors.confirm = 'Please confirm your password';
     else if (confirm !== password)  errors.confirm = 'Passwords do not match';
 
-    if (phone && phone.replace(/\D/g, '').length < 7)
-      errors.phone = 'Phone must be at least 7 digits';
+    if (phone) {
+      const digits = phone.replace(/\D/g, '');
+      if (!/^\d+$/.test(phone))
+        errors.phone = 'Phone number must contain digits only';
+      else if (digits.length < country.minLen)
+        errors.phone = `${country.name} numbers need ${country.minLen} digits`;
+      else if (digits.length > country.maxLen)
+        errors.phone = `${country.name} numbers can't exceed ${country.maxLen} digits`;
+    }
   } else {
     if (!email.trim())              errors.email = 'Email is required';
     else if (!isValidEmail(email))  errors.email = 'Enter a valid email address';
@@ -355,18 +364,9 @@ export const SignInScreen: React.FC = () => {
   // ── Country auto-detect ──────────────────────────────────────────────────────
 
   const handlePhoneChange = (value: string) => {
-    setPhone(value);
-    if (value.startsWith('+')) {
-      const digits = value.slice(1).replace(/\D/g, '');
-      for (const c of COUNTRIES) {
-        for (const d of c.digits) {
-          if (digits.startsWith(d)) {
-            setCountry(c);
-            return;
-          }
-        }
-      }
-    }
+    // Strip all non-digit characters — phone field is numeric only
+    const numeric = value.replace(/\D/g, '');
+    setPhone(numeric);
   };
 
   // ── Social SDK injection ─────────────────────────────────────────────────────
@@ -416,23 +416,6 @@ export const SignInScreen: React.FC = () => {
       document.head.appendChild(fbScript);
     }
 
-    // Apple Sign In JS
-    if (!document.getElementById('apple-script')) {
-      const appleScript = document.createElement('script');
-      appleScript.id = 'apple-script';
-      appleScript.src = 'https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js';
-      appleScript.async = true;
-      appleScript.onload = () => {
-        // @ts-ignore
-        window.AppleID?.auth.init({
-          clientId: import.meta.env.VITE_APPLE_CLIENT_ID || '',
-          scope: 'name email',
-          redirectURI: window.location.origin,
-          usePopup: true,
-        });
-      };
-      document.head.appendChild(appleScript);
-    }
   }, []);
 
   // ── Social handlers ───────────────────────────────────────────────────────────
@@ -464,29 +447,6 @@ export const SignInScreen: React.FC = () => {
       },
       { scope: 'email,public_profile' }
     );
-  };
-
-  const handleAppleLogin = async () => {
-    setSocialLoading('apple');
-    try {
-      // @ts-ignore
-      const response = await window.AppleID?.auth.signIn();
-      const idToken = response?.authorization?.id_token;
-      const firstName = response?.user?.name?.firstName ?? '';
-      const lastName  = response?.user?.name?.lastName ?? '';
-      const appleName = [firstName, lastName].filter(Boolean).join(' ');
-      const appleEmail = response?.user?.email;
-      if (idToken) {
-        const result = await oauthApple(idToken, appleName || undefined, appleEmail || undefined);
-        setUser(result.user);
-        setToken(result.access_token);
-        goto('profile-setup');
-      }
-    } catch (e: any) {
-      toast.error(e?.response?.data?.detail || 'Apple sign-in failed');
-    } finally {
-      setSocialLoading(null);
-    }
   };
 
   // ── Form submit ───────────────────────────────────────────────────────────────
@@ -789,39 +749,6 @@ export const SignInScreen: React.FC = () => {
 
           {/* Social login buttons */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-
-            {/* Apple */}
-            <button
-              type="button"
-              onClick={handleAppleLogin}
-              disabled={!!socialLoading}
-              style={{
-                width: '100%',
-                padding: '13px 20px',
-                borderRadius: 999,
-                border: 'none',
-                background: '#000',
-                color: '#fff',
-                fontFamily: 'var(--sans)',
-                fontSize: 14,
-                fontWeight: 500,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 10,
-                cursor: socialLoading ? 'not-allowed' : 'pointer',
-                opacity: socialLoading && socialLoading !== 'apple' ? 0.5 : 1,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                transition: 'opacity 0.2s',
-              }}
-            >
-              {socialLoading === 'apple' ? (
-                <Spinner color="#fff" />
-              ) : (
-                <span style={{ fontSize: 17, lineHeight: 1 }}></span>
-              )}
-              Continue with Apple
-            </button>
 
             {/* Google */}
             <button
