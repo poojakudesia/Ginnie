@@ -452,12 +452,14 @@ export const SignInScreen: React.FC = () => {
   // ── Form submit ───────────────────────────────────────────────────────────────
 
   const handleSubmit = async () => {
-    // Touch all fields so errors show
     const allFields = mode === 'signup'
       ? ['name', 'email', 'password', 'confirm']
       : ['email', 'password'];
     setTouched(Object.fromEntries(allFields.map((f) => [f, true])));
-    if (!isFormValid) return;
+    if (!isFormValid) {
+      toast.error('Please fix the highlighted fields above');
+      return;
+    }
 
     setLoading(true);
     setApiError('');
@@ -468,7 +470,7 @@ export const SignInScreen: React.FC = () => {
           name: name.trim(),
           email: email.trim(),
           password,
-          phone: phone ? `${country.code}${phone.replace(/\D/g, '')}` : undefined,
+          phone: phone ? `${country.code}${phone}` : undefined,
         });
       } else {
         result = await login({ email: email.trim(), password });
@@ -477,9 +479,16 @@ export const SignInScreen: React.FC = () => {
       setToken(result.access_token);
       goto('profile-setup');
     } catch (e: any) {
-      const msg = e?.response?.data?.detail || e?.message || 'Something went wrong. Please try again.';
-      setApiError(typeof msg === 'string' ? msg : JSON.stringify(msg));
-      toast.error(typeof msg === 'string' ? msg : 'Authentication failed');
+      const detail = e?.response?.data?.detail;
+      const msg = typeof detail === 'string'
+        ? detail
+        : Array.isArray(detail)
+          ? detail.map((d: any) => d.msg).join(', ')
+          : e?.message === 'Network Error'
+            ? 'Cannot reach server. Make sure the backend is running on port 8000.'
+            : e?.message || 'Something went wrong. Please try again.';
+      setApiError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -699,7 +708,7 @@ export const SignInScreen: React.FC = () => {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || !isFormValid}
             style={{
               marginTop: 24,
               width: '100%',
@@ -711,8 +720,8 @@ export const SignInScreen: React.FC = () => {
               fontFamily: 'var(--sans)',
               fontSize: 17,
               fontWeight: 500,
-              cursor: loading ? 'not-allowed' : 'pointer',
-              opacity: loading ? 0.7 : 1,
+              cursor: loading || !isFormValid ? 'not-allowed' : 'pointer',
+              opacity: loading || !isFormValid ? 0.5 : 1,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

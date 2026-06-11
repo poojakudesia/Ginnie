@@ -17,8 +17,12 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 1, staleTime: 30_000 } },
 });
 
-// Screens that don't require auth
-const PUBLIC_SCREENS = new Set(['welcome', 'signin']);
+// Screens that don't require auth (public + all onboarding steps)
+const PUBLIC_SCREENS = new Set([
+  'welcome', 'signin',
+  'profile-setup', 'wish-builder', 'wishes',
+  'questions', 'techniques', 'tutorial',
+]);
 // Screens that show the bottom tab bar
 const TABBED_SCREENS = new Set(['home', 'movie', 'affirm', 'journey', 'profile', 'feed']);
 
