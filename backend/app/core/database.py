@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
 from typing import Generator
 
@@ -33,3 +33,19 @@ def create_tables() -> None:
     # Import all models so they are registered with Base.metadata
     from app.models import user, wish, journal, technique  # noqa: F401
     Base.metadata.create_all(bind=engine)
+    _ensure_columns()
+
+
+def _ensure_columns() -> None:
+    """Lightweight dev auto-migration: add columns that were introduced after
+    a table was first created. PostgreSQL supports ADD COLUMN IF NOT EXISTS."""
+    statements = [
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(30)",
+    ]
+    with engine.begin() as conn:
+        for stmt in statements:
+            try:
+                conn.execute(text(stmt))
+            except Exception:
+                # Non-fatal: log-and-continue so startup never breaks on this
+                pass
