@@ -20,6 +20,7 @@ export const DLScreen: React.FC<DLScreenProps> = ({
 
   return (
     <div
+      data-dl-screen-scroll={scroll ? '' : undefined}
       style={{
         position: 'relative',
         width: '100%',

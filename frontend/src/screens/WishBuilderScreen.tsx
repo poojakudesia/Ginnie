@@ -14,11 +14,7 @@ const CATEGORIES = ['Career', 'Love', 'Health', 'Wealth', 'Travel', 'Purpose'];
 const PROGRESS = ['Not started', 'In progress', 'Close'];
 const TIMELINES = ['3m', '6m', '1y', '3y'];
 
-interface Props {
-  wishIndex?: number;
-}
-
-export const WishBuilderScreen: React.FC<Props> = ({ wishIndex = 0 }) => {
+export const WishBuilderScreen: React.FC = () => {
   const { goto, addWish, wishes } = useAppStore();
   const [goal, setGoal] = useState('');
   const [category, setCategory] = useState('');
@@ -26,23 +22,46 @@ export const WishBuilderScreen: React.FC<Props> = ({ wishIndex = 0 }) => {
   const [progress, setProgress] = useState(0);
   const [timeline, setTimeline] = useState('');
 
+  // The wish currently being entered = however many are already saved
+  const wishIndex = wishes.length;
+
   const showInsight = category && goal.length > 10;
   const canContinue = goal && category && why && timeline;
+  // Room for more after saving this one? (hard cap of 3 total)
+  const canAddAnother = wishIndex < 2;
+
+  const buildWish = (): Wish => ({
+    id: Date.now().toString(),
+    title: goal,
+    category,
+    why,
+    progress_label: PROGRESS[progress],
+    timeline,
+    pct_complete: progress === 2 ? 75 : progress === 1 ? 40 : 5,
+    is_manifested: false,
+    created_at: new Date().toISOString(),
+  });
+
+  const resetForm = () => {
+    setGoal('');
+    setCategory('');
+    setWhy('');
+    setProgress(0);
+    setTimeline('');
+  };
 
   const handleContinue = () => {
-    const wish: Wish = {
-      id: Date.now().toString(),
-      title: goal,
-      category,
-      why,
-      progress_label: PROGRESS[progress],
-      timeline,
-      pct_complete: progress === 2 ? 75 : progress === 1 ? 40 : 5,
-      is_manifested: false,
-      created_at: new Date().toISOString(),
-    };
-    addWish(wish);
-    goto('wishes-summary');
+    addWish(buildWish());
+    goto('wishes');
+  };
+
+  const handleAddAnother = () => {
+    addWish(buildWish());
+    resetForm();
+    // Bring the freshly blank form back into view
+    const scroller = document.querySelector('[data-dl-screen-scroll]');
+    if (scroller) scroller.scrollTop = 0;
+    else window.scrollTo(0, 0);
   };
 
   return (
@@ -181,8 +200,8 @@ export const WishBuilderScreen: React.FC<Props> = ({ wishIndex = 0 }) => {
         <DLButton variant="primary" size="lg" fullWidth disabled={!canContinue} onClick={handleContinue}>
           Continue →
         </DLButton>
-        {wishes.length < 2 && (
-          <DLButton variant="ghost" size="md" fullWidth onClick={handleContinue}>
+        {canAddAnother && (
+          <DLButton variant="ghost" size="md" fullWidth disabled={!canContinue} onClick={handleAddAnother}>
             + Add another wish
           </DLButton>
         )}
