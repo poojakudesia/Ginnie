@@ -1,9 +1,11 @@
 import React, { CSSProperties, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { signup, login, oauthGoogle, oauthFacebook } from '../api/auth';
+import { getWishes } from '../api/wishes';
 import { DLScreen } from '../components/DLScreen';
 import { useAppStore } from '../store/app';
 import { useAuthStore } from '../store/auth';
+import type { AuthResponse } from '../api/auth';
 
 // ─── Country data ────────────────────────────────────────────────────────────
 
@@ -301,10 +303,13 @@ const CountryPicker: React.FC<{
 
 export const SignInScreen: React.FC = () => {
   const goto = useAppStore((s) => s.goto);
+  const authMode = useAppStore((s) => s.authMode);
+  const setWishes = useAppStore((s) => s.setWishes);
   const { setUser, setToken } = useAuthStore();
 
-  // mode
-  const [mode, setMode] = useState<'signup' | 'signin'>('signup');
+  // mode — initialized from how the user entered (Let's Begin = signup,
+  // "I already have an account" = signin)
+  const [mode, setMode] = useState<'signup' | 'signin'>(authMode);
 
   // fields
   const [name, setName]             = useState('');
@@ -371,6 +376,25 @@ export const SignInScreen: React.FC = () => {
 
   // ── Social SDK injection ─────────────────────────────────────────────────────
 
+  // After any successful auth: store session, then route based on whether
+  // the user already has wishes (returning user → daily rituals/home,
+  // new user → onboarding/profile-setup).
+  const finishAuth = async (result: AuthResponse) => {
+    setUser(result.user);
+    setToken(result.access_token);
+    try {
+      const existing = await getWishes();
+      if (existing && existing.length > 0) {
+        setWishes(existing);
+        goto('home');
+        return;
+      }
+    } catch {
+      // ignore — fall through to onboarding
+    }
+    goto('profile-setup');
+  };
+
   useEffect(() => {
     // Google Identity Services
     if (!document.getElementById('gsi-script')) {
@@ -386,9 +410,7 @@ export const SignInScreen: React.FC = () => {
       try {
         setSocialLoading('google');
         const result = await oauthGoogle(response.credential);
-        setUser(result.user);
-        setToken(result.access_token);
-        goto('profile-setup');
+        await finishAuth(result);
       } catch (e: any) {
         toast.error(e?.response?.data?.detail || 'Google sign-in failed');
       } finally {
@@ -433,9 +455,7 @@ export const SignInScreen: React.FC = () => {
         if (response.authResponse) {
           try {
             const result = await oauthFacebook(response.authResponse.accessToken);
-            setUser(result.user);
-            setToken(result.access_token);
-            goto('profile-setup');
+            await finishAuth(result);
           } catch (e: any) {
             toast.error(e?.response?.data?.detail || 'Facebook sign-in failed');
           } finally {
@@ -475,9 +495,7 @@ export const SignInScreen: React.FC = () => {
       } else {
         result = await login({ email: email.trim(), password });
       }
-      setUser(result.user);
-      setToken(result.access_token);
-      goto('profile-setup');
+      await finishAuth(result);
     } catch (e: any) {
       const detail = e?.response?.data?.detail;
       const msg = typeof detail === 'string'

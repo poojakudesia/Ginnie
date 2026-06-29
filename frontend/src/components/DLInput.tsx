@@ -6,10 +6,12 @@ interface DLInputProps {
   prefix?: string;
   value: string;
   onChange: (v: string) => void;
+  onBlur?: () => void;
   placeholder?: string;
   multiline?: boolean;
   rows?: number;
   type?: string;
+  error?: string;
   style?: CSSProperties;
   inputStyle?: CSSProperties;
   autoFocus?: boolean;
@@ -21,10 +23,12 @@ export const DLInput: React.FC<DLInputProps> = ({
   prefix,
   value,
   onChange,
+  onBlur,
   placeholder,
   multiline = false,
   rows = 3,
   type = 'text',
+  error,
   style,
   inputStyle,
   autoFocus,
@@ -43,6 +47,7 @@ export const DLInput: React.FC<DLInputProps> = ({
     transition: 'border-color 0.15s',
     resize: multiline ? 'none' : undefined,
     lineHeight: 1.5,
+    ...(error ? { borderColor: '#E05252' } : null),
     ...inputStyle,
   };
 
@@ -83,6 +88,7 @@ export const DLInput: React.FC<DLInputProps> = ({
           <textarea
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onBlur={onBlur}
             placeholder={placeholder}
             rows={rows}
             autoFocus={autoFocus}
@@ -93,13 +99,25 @@ export const DLInput: React.FC<DLInputProps> = ({
             type={type}
             value={value}
             onChange={(e) => onChange(e.target.value)}
+            onBlur={onBlur}
             placeholder={placeholder}
             autoFocus={autoFocus}
             style={sharedInputStyle}
           />
         )}
       </div>
-      {hint && (
+      {error ? (
+        <span
+          style={{
+            fontFamily: 'var(--mono)',
+            fontSize: 11,
+            color: '#E05252',
+            letterSpacing: '0.02em',
+          }}
+        >
+          {error}
+        </span>
+      ) : hint ? (
         <span
           style={{
             fontFamily: 'var(--sans)',
@@ -109,7 +127,7 @@ export const DLInput: React.FC<DLInputProps> = ({
         >
           {hint}
         </span>
-      )}
+      ) : null}
     </div>
   );
 };

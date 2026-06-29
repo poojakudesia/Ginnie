@@ -16,7 +16,11 @@ const GLYPHS = [
 
 export const WelcomeScreen: React.FC = () => {
   const goto = useAppStore((s) => s.goto);
+  const setAuthMode = useAppStore((s) => s.setAuthMode);
   const [visible, setVisible] = useState(false);
+
+  const openSignup = () => { setAuthMode('signup'); goto('signin'); };
+  const openSignin = () => { setAuthMode('signin'); goto('signin'); };
 
   useEffect(() => {
     setTimeout(() => setVisible(true), 100);
@@ -145,12 +149,12 @@ export const WelcomeScreen: React.FC = () => {
           variant="primary"
           size="lg"
           fullWidth
-          onClick={() => goto('signin')}
+          onClick={openSignup}
         >
           Let's Begin ✦
         </DLButton>
         <button
-          onClick={() => goto('signin')}
+          onClick={openSignin}
           style={{
             background: 'transparent',
             border: 'none',

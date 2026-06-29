@@ -2,156 +2,210 @@ import React from 'react';
 import { DLScreen } from '../components/DLScreen';
 import { DLButton } from '../components/DLButton';
 import { DLDisplay } from '../components/DLDisplay';
-import { DLLabel } from '../components/DLLabel';
 import { useAppStore } from '../store/app';
 
-const CARD_COLORS = [
-  { bg: 'linear-gradient(135deg, #A8D5A2 0%, #6BAF64 100%)', text: '#1a3d18' },
-  { bg: 'linear-gradient(135deg, #F9C784 0%, #F4A236 100%)', text: '#3d2a0a' },
-  { bg: 'linear-gradient(135deg, #B8A5D4 0%, #7B5EA7 100%)', text: '#1e0d3d' },
+// Soft pastel palettes — muted, "locked in stone" feel (matches wishes.png)
+const CARD_TONES = [
+  { bg: '#CBDCC0', label: 'rgba(47,61,36,0.62)', text: '#2F3D24', remove: 'rgba(47,61,36,0.10)' },
+  { bg: '#E8D6AE', label: 'rgba(71,58,30,0.62)', text: '#473A1E', remove: 'rgba(71,58,30,0.10)' },
+  { bg: '#DDCBE0', label: 'rgba(58,42,64,0.62)', text: '#3A2A40', remove: 'rgba(58,42,64,0.10)' },
 ];
 
 export const WishesSummaryScreen: React.FC = () => {
-  const { goto, wishes, removeWish } = useAppStore();
+  const { goto, goBack, wishes, removeWish } = useAppStore();
+  const count = wishes.length;
 
   return (
-    <DLScreen scroll pad style={{ paddingTop: 24 }}>
-      <DLLabel style={{ color: 'var(--btn)', marginBottom: 6, display: 'block' }}>
-        Your wishes ✦
-      </DLLabel>
-      <DLDisplay size="sm" style={{ marginBottom: 24 }}>
-        Looking{' '}
-        <span style={{ fontStyle: 'italic' }}>beautiful.</span>
-      </DLDisplay>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
-        {wishes.map((wish, i) => {
-          const colors = CARD_COLORS[i % CARD_COLORS.length];
-          return (
+    <DLScreen scroll pad={false}>
+      {/* Top bar */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '14px 22px 8px',
+          flexShrink: 0,
+        }}
+      >
+        <button
+          onClick={goBack}
+          style={{
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: 'var(--mono)',
+            fontSize: 11,
+            letterSpacing: '0.12em',
+            color: 'var(--ink)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: 0,
+          }}
+        >
+          ← BACK
+        </button>
+        <span
+          style={{
+            fontFamily: 'var(--mono)',
+            fontSize: 11,
+            letterSpacing: '0.14em',
+            color: 'var(--muted)',
+          }}
+        >
+          04 · YOUR GOALS
+        </span>
+        {/* progress dots */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, width: 56, justifyContent: 'flex-end' }}>
+          {[0, 1, 2, 3, 4].map((i) => (
             <div
-              key={wish.id}
+              key={i}
               style={{
-                borderRadius: 20,
-                overflow: 'hidden',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-                position: 'relative',
+                width: i === 2 ? 16 : 5,
+                height: 5,
+                borderRadius: 999,
+                background: i === 2 ? 'var(--btn)' : 'var(--line-strong)',
               }}
-            >
+            />
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: '0 22px' }}>
+        {/* Eyebrow */}
+        <div
+          style={{
+            fontFamily: 'var(--mono)',
+            fontSize: 11,
+            letterSpacing: '0.14em',
+            color: 'var(--muted)',
+            margin: '14px 0 10px',
+          }}
+        >
+          {count} OF 3 ADDED
+        </div>
+
+        {/* Title */}
+        <DLDisplay size="md" style={{ lineHeight: 1.05 }}>
+          your goals,<br />
+          <span style={{ fontStyle: 'italic' }}>set in stone.</span>
+        </DLDisplay>
+
+        <p
+          style={{
+            fontFamily: 'var(--sans)',
+            fontSize: 14,
+            color: 'var(--muted)',
+            lineHeight: 1.5,
+            margin: '12px 0 22px',
+          }}
+        >
+          Once we begin, these are locked. The practice trusts the practice — no editing midway.
+        </p>
+
+        {/* Goal cards */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
+          {wishes.map((wish, i) => {
+            const tone = CARD_TONES[i % CARD_TONES.length];
+            return (
               <div
+                key={wish.id}
                 style={{
-                  background: colors.bg,
-                  padding: '20px 20px 24px',
+                  background: tone.bg,
+                  borderRadius: 18,
+                  padding: '16px 18px 18px',
                 }}
               >
                 <div
                   style={{
-                    fontFamily: 'var(--mono)',
-                    fontSize: 10,
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    color: colors.text,
-                    opacity: 0.7,
-                    marginBottom: 8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 12,
                   }}
                 >
-                  {wish.category}
+                  <span
+                    style={{
+                      fontFamily: 'var(--mono)',
+                      fontSize: 10.5,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                      color: tone.label,
+                    }}
+                  >
+                    Goal {String(i + 1).padStart(2, '0')} · {wish.category}
+                  </span>
+                  <button
+                    onClick={() => removeWish(wish.id)}
+                    style={{
+                      fontFamily: 'var(--mono)',
+                      fontSize: 9.5,
+                      letterSpacing: '0.1em',
+                      textTransform: 'uppercase',
+                      color: tone.text,
+                      background: tone.remove,
+                      border: 'none',
+                      borderRadius: 999,
+                      padding: '5px 11px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Remove
+                  </button>
                 </div>
                 <div
                   style={{
                     fontFamily: 'var(--serif)',
-                    fontSize: 20,
+                    fontSize: 21,
                     fontStyle: 'italic',
-                    color: colors.text,
-                    lineHeight: 1.3,
+                    lineHeight: 1.32,
+                    color: tone.text,
                   }}
                 >
                   {wish.title}
                 </div>
-                <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div
-                    style={{
-                      flex: 1,
-                      height: 3,
-                      borderRadius: 999,
-                      background: 'rgba(255,255,255,0.3)',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${wish.pct_complete}%`,
-                        height: '100%',
-                        background: 'rgba(255,255,255,0.7)',
-                        borderRadius: 999,
-                      }}
-                    />
-                  </div>
-                  <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: colors.text, opacity: 0.7 }}>
-                    {wish.timeline}
-                  </span>
-                </div>
               </div>
+            );
+          })}
 
-              <button
-                onClick={() => removeWish(wish.id)}
-                style={{
-                  position: 'absolute',
-                  top: 12,
-                  right: 12,
-                  width: 28,
-                  height: 28,
-                  borderRadius: 999,
-                  background: 'rgba(255,255,255,0.3)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: 14,
-                  color: colors.text,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                ×
-              </button>
-            </div>
-          );
-        })}
-
-        {/* Add another dashed card */}
-        {wishes.length < 3 && (
-          <button
-            onClick={() => goto('wish-builder')}
-            style={{
-              borderRadius: 20,
-              border: '2px dashed var(--line-strong)',
-              padding: '28px 20px',
-              background: 'transparent',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 8,
-              fontFamily: 'var(--sans)',
-              fontSize: 14,
-              color: 'var(--muted)',
-            }}
-          >
-            <span style={{ fontSize: 20 }}>+</span>
-            Add another wish
-          </button>
-        )}
+          {/* Add another (dashed) */}
+          {count < 3 && (
+            <button
+              onClick={() => goto('wish-builder')}
+              style={{
+                borderRadius: 18,
+                border: '1.5px dashed var(--line-strong)',
+                padding: '22px 20px',
+                background: 'transparent',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                fontFamily: 'var(--sans)',
+                fontSize: 14,
+                color: 'var(--ink-2)',
+              }}
+            >
+              <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
+              Add goal {count + 1}
+            </button>
+          )}
+        </div>
       </div>
 
-      <DLButton
-        variant="primary"
-        size="lg"
-        fullWidth
-        disabled={wishes.length === 0}
-        onClick={() => goto('questions')}
-        style={{ marginBottom: 32 }}
-      >
-        Continue →
-      </DLButton>
+      {/* CTA */}
+      <div style={{ padding: '8px 22px 32px', marginTop: 'auto' }}>
+        <DLButton
+          variant="primary"
+          size="lg"
+          fullWidth
+          disabled={count === 0}
+          onClick={() => goto('questions')}
+        >
+          Continue with {count} {count === 1 ? 'goal' : 'goals'} →
+        </DLButton>
+      </div>
     </DLScreen>
   );
 };

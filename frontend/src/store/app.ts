@@ -7,6 +7,7 @@ interface AppStore {
   wishes: Wish[];
   techniques: string[];
   screenHistory: string[];
+  authMode: 'signup' | 'signin';
   goto: (screen: string) => void;
   goBack: () => void;
   setPalette: (palette: Palette) => void;
@@ -14,6 +15,7 @@ interface AppStore {
   addWish: (wish: Wish) => void;
   removeWish: (id: string) => void;
   setTechniques: (techniques: string[]) => void;
+  setAuthMode: (mode: 'signup' | 'signin') => void;
 }
 
 const PALETTE_VARS: Record<Palette, Record<string, string>> = {
@@ -89,6 +91,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   wishes: [],
   techniques: [],
   screenHistory: [],
+  authMode: 'signup',
 
   goto: (screen) => {
     const current = get().screen;
@@ -122,6 +125,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
     set((state) => ({ wishes: state.wishes.filter((w) => w.id !== id) })),
 
   setTechniques: (techniques) => set({ techniques }),
+
+  setAuthMode: (mode) => set({ authMode: mode }),
 }));
 
 export { PALETTE_VARS };

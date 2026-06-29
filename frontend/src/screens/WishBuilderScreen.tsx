@@ -9,6 +9,7 @@ import { DLAura } from '../components/DLAura';
 import { DLDisplay } from '../components/DLDisplay';
 import { useAppStore } from '../store/app';
 import { Wish } from '../types';
+import { looksLikeGibberish, analyzeWish } from '../lib/wishAnalysis';
 
 const CATEGORIES = ['Career', 'Love', 'Health', 'Wealth', 'Travel', 'Purpose'];
 const PROGRESS = ['Not started', 'In progress', 'Close'];
@@ -21,12 +22,24 @@ export const WishBuilderScreen: React.FC = () => {
   const [why, setWhy] = useState('');
   const [progress, setProgress] = useState(0);
   const [timeline, setTimeline] = useState('');
+  const [goalTouched, setGoalTouched] = useState(false);
 
   // The wish currently being entered = however many are already saved
   const wishIndex = wishes.length;
 
-  const showInsight = category && goal.length > 10;
-  const canContinue = goal && category && why && timeline;
+  // Validation: a real, readable goal (not random/gibberish text)
+  const isGibberish = goal.trim().length > 0 && looksLikeGibberish(goal);
+  const goalError = goalTouched && isGibberish
+    ? 'Please write a real goal in a few words — that doesn’t look like one yet.'
+    : '';
+
+  // Ginnie's Insight — only once we have a genuine goal + category + timeline
+  const analysis =
+    !isGibberish && goal.trim().length > 6 && category && timeline
+      ? analyzeWish(goal, category, timeline)
+      : null;
+
+  const canContinue = !!(goal && category && why && timeline) && !isGibberish;
   // Room for more after saving this one? (hard cap of 3 total)
   const canAddAnother = wishIndex < 2;
 
@@ -97,6 +110,8 @@ export const WishBuilderScreen: React.FC = () => {
             label="Your goal"
             value={goal}
             onChange={setGoal}
+            onBlur={() => setGoalTouched(true)}
+            error={goalError}
             placeholder="e.g. Land my dream job at a creative agency"
             multiline
             rows={2}
@@ -177,18 +192,26 @@ export const WishBuilderScreen: React.FC = () => {
           </div>
         </div>
 
-        {/* Aura insight */}
-        {showInsight && (
-          <DLCard tone="plum" style={{ animation: 'dlFadeUp 0.4s ease' }}>
+        {/* Ginnie's Insight — feasibility-aware */}
+        {analysis && (
+          <DLCard
+            tone={analysis.verdict === 'rethink' ? 'clay' : 'plum'}
+            style={{ animation: 'dlFadeUp 0.4s ease' }}
+          >
             <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
               <DLAura size={36} glow={false} />
               <div>
-                <DLLabel style={{ color: 'var(--btn)', marginBottom: 4, display: 'block' }}>
-                  Aura's insight ✦
+                <DLLabel
+                  style={{
+                    color: analysis.verdict === 'rethink' ? '#B5701F' : 'var(--btn)',
+                    marginBottom: 4,
+                    display: 'block',
+                  }}
+                >
+                  {analysis.verdict === 'rethink' ? "Ginnie's Insight · let's rethink" : "Ginnie's Insight ✦"}
                 </DLLabel>
                 <p style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--ink)', lineHeight: 1.55, margin: 0 }}>
-                  This is a powerful {category.toLowerCase()} wish. Your energy around this feels strong —
-                  let's channel it into daily practice.
+                  {analysis.message}
                 </p>
               </div>
             </div>
