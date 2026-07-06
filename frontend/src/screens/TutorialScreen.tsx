@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { DLScreen } from '../components/DLScreen';
 import { DLButton } from '../components/DLButton';
 import { DLDisplay } from '../components/DLDisplay';
@@ -6,6 +6,8 @@ import { DLLabel } from '../components/DLLabel';
 import { DLCard } from '../components/DLCard';
 import { DLAura } from '../components/DLAura';
 import { useAppStore } from '../store/app';
+import { APP_KIND, APP_VIDEOS } from '../lib/methodCatalog';
+import { refineAffirmation } from '../api/methods';
 
 const TECHNIQUES = [
   {
@@ -78,6 +80,13 @@ export const TutorialScreen: React.FC = () => {
   const { goto, techniques } = useAppStore();
   const [lessonIndex, setLessonIndex] = useState(0);
 
+  // Per-lesson practice capture (write + Aura refine, or file upload)
+  const [draft, setDraft] = useState('');
+  const [refined, setRefined] = useState<{ text: string; tips: string[]; changed: boolean } | null>(null);
+  const [refining, setRefining] = useState(false);
+  const [uploadName, setUploadName] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+
   const tutorialKeys = techniques.filter((t) => TECHNIQUE_MAP[t]);
   const lessonKeys = tutorialKeys.length > 0 ? tutorialKeys : ['viz'];
   const currentKey = lessonKeys[lessonIndex];
@@ -86,11 +95,35 @@ export const TutorialScreen: React.FC = () => {
   const isLast = lessonIndex >= total - 1;
   const nextTechnique = !isLast ? TECHNIQUE_MAP[lessonKeys[lessonIndex + 1]] : null;
 
+  const kind = APP_KIND[currentKey] ?? 'text';
+  const videos = APP_VIDEOS[currentKey] ?? [];
+
+  const resetCapture = () => {
+    setDraft('');
+    setRefined(null);
+    setRefining(false);
+    setUploadName('');
+  };
+
+  const handleRefine = async () => {
+    if (!draft.trim() || refining) return;
+    setRefining(true);
+    try {
+      const res = await refineAffirmation(draft.trim(), currentKey);
+      setRefined({ text: res.refined, tips: res.tips, changed: res.changed });
+    } catch {
+      setRefined({ text: draft.trim(), tips: ['Aura is resting — keep your words for now ✦'], changed: false });
+    } finally {
+      setRefining(false);
+    }
+  };
+
   const handleNext = () => {
     if (!isLast) {
       setLessonIndex(lessonIndex + 1);
+      resetCapture();
     } else {
-      goto('home');
+      goto('plan');
     }
   };
 
@@ -247,6 +280,208 @@ export const TutorialScreen: React.FC = () => {
         </div>
       </div>
 
+      {/* Watch & learn — YouTube explainers */}
+      {videos.length > 0 && (
+        <div style={{ padding: '22px 20px 0' }}>
+          <DLLabel style={{ color: 'rgba(33,31,26,0.5)', marginBottom: 12, display: 'block' }}>
+            Watch & learn ▸
+          </DLLabel>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {videos.map((v) => (
+              <a
+                key={v.url}
+                href={v.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  textDecoration: 'none',
+                  background: 'rgba(255,255,255,0.65)',
+                  border: '1px solid rgba(33,31,26,0.10)',
+                  borderRadius: 14,
+                  padding: '12px 14px',
+                }}
+              >
+                <div
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 10,
+                    background: '#FF0000',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span style={{ color: '#fff', fontSize: 15, marginLeft: 2 }}>▶</span>
+                </div>
+                <span style={{ flex: 1, fontFamily: 'var(--sans)', fontSize: 13.5, color: '#211F1A', lineHeight: 1.35 }}>
+                  {v.title}
+                </span>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'rgba(33,31,26,0.45)' }}>YT ↗</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Practice it now — write + Aura refine (text) OR upload (media) */}
+      <div style={{ padding: '22px 20px 0' }}>
+        <DLLabel style={{ color: 'rgba(33,31,26,0.5)', marginBottom: 12, display: 'block' }}>
+          {kind === 'text' ? 'Try it now — write your line' : 'Try it now — add your file'}
+        </DLLabel>
+
+        {kind === 'text' ? (
+          <div>
+            <textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder={
+                currentKey === 'gratitude'
+                  ? 'e.g. I am grateful for the morning light…'
+                  : 'e.g. I am confident, calm, and open to abundance'
+              }
+              rows={3}
+              style={{
+                width: '100%',
+                background: 'rgba(255,255,255,0.75)',
+                border: '1.5px solid rgba(33,31,26,0.14)',
+                borderRadius: 14,
+                padding: '13px 15px',
+                fontFamily: 'var(--sans)',
+                fontSize: 15,
+                color: '#211F1A',
+                lineHeight: 1.5,
+                resize: 'none',
+                outline: 'none',
+                boxSizing: 'border-box',
+              }}
+            />
+            <button
+              onClick={handleRefine}
+              disabled={!draft.trim() || refining}
+              style={{
+                marginTop: 10,
+                width: '100%',
+                padding: '12px 18px',
+                borderRadius: 999,
+                border: 'none',
+                background: glyphGradient,
+                color: '#fff',
+                fontFamily: 'var(--sans)',
+                fontSize: 14,
+                fontWeight: 600,
+                cursor: !draft.trim() || refining ? 'not-allowed' : 'pointer',
+                opacity: !draft.trim() || refining ? 0.6 : 1,
+              }}
+            >
+              {refining ? 'Aura is refining…' : '✦ Refine with Aura'}
+            </button>
+
+            {refined && (
+              <div
+                style={{
+                  marginTop: 12,
+                  background: '#211F1A',
+                  borderRadius: 18,
+                  padding: 16,
+                  animation: 'dlFadeUp 0.35s ease',
+                }}
+              >
+                <DLLabel style={{ color: 'rgba(255,255,255,0.45)', marginBottom: 8, display: 'block' }}>
+                  {refined.changed ? "Aura's refined version ✦" : 'Aura says ✦'}
+                </DLLabel>
+                <p
+                  style={{
+                    fontFamily: 'var(--serif)',
+                    fontStyle: 'italic',
+                    fontSize: 17,
+                    color: '#fff',
+                    lineHeight: 1.45,
+                    margin: 0,
+                  }}
+                >
+                  "{refined.text || draft.trim()}"
+                </p>
+                {refined.tips.length > 0 && (
+                  <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
+                    {refined.tips.map((t, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                        <span style={{ color: '#C4A96A', fontSize: 12, flexShrink: 0 }}>✓</span>
+                        <span style={{ fontFamily: 'var(--sans)', fontSize: 12.5, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
+                          {t}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {refined.changed && refined.text && (
+                  <button
+                    onClick={() => { setDraft(refined.text); setRefined(null); }}
+                    style={{
+                      marginTop: 14,
+                      width: '100%',
+                      padding: '10px 16px',
+                      borderRadius: 999,
+                      border: '1.5px solid rgba(255,255,255,0.3)',
+                      background: 'transparent',
+                      color: '#fff',
+                      fontFamily: 'var(--sans)',
+                      fontSize: 13,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Use this version →
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*,audio/*,video/*"
+              onChange={(e) => setUploadName(e.target.files?.[0]?.name ?? '')}
+              style={{ display: 'none' }}
+            />
+            <button
+              onClick={() => fileRef.current?.click()}
+              style={{
+                width: '100%',
+                padding: '22px 18px',
+                borderRadius: 16,
+                border: '1.5px dashed rgba(33,31,26,0.25)',
+                background: 'rgba(255,255,255,0.55)',
+                cursor: 'pointer',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              <span style={{ fontSize: 26 }}>⬆</span>
+              <span style={{ fontFamily: 'var(--sans)', fontSize: 14, color: '#211F1A', fontWeight: 500 }}>
+                {uploadName || 'Upload your image, audio or video'}
+              </span>
+              <span style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.06em', color: 'rgba(33,31,26,0.45)' }}>
+                {uploadName ? 'TAP TO CHANGE' : 'MP4 · MP3 · JPG · PNG'}
+              </span>
+            </button>
+            {uploadName && (
+              <p style={{ marginTop: 10, fontFamily: 'var(--sans)', fontSize: 13, color: 'rgba(33,31,26,0.6)', textAlign: 'center' }}>
+                ✓ {uploadName} ready for your practice
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* CTA */}
       <div style={{ padding: '24px 20px 0' }}>
         <DLButton
@@ -257,12 +492,12 @@ export const TutorialScreen: React.FC = () => {
           style={{ background: glyphGradient }}
         >
           {isLast
-            ? "I'm ready. Let me in →"
+            ? 'Build my plan →'
             : `Next: ${nextTechnique?.name} →`}
         </DLButton>
         <div style={{ textAlign: 'center', marginTop: 16 }}>
           <button
-            onClick={() => goto('home')}
+            onClick={() => goto('plan')}
             style={{
               background: 'none',
               border: 'none',

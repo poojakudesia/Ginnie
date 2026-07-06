@@ -38,3 +38,14 @@ class MethodRecommendation(BaseModel):
 
 class RecommendMethodsResponse(BaseModel):
     recommendations: list[MethodRecommendation]
+
+
+class RefineAffirmationRequest(BaseModel):
+    text: str
+    method: Optional[str] = None   # method id for light context, optional
+
+
+class RefineAffirmationResponse(BaseModel):
+    refined: str
+    tips: list[str] = []
+    changed: bool = True   # False when input was already strong / empty

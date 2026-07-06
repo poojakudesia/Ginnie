@@ -193,6 +193,159 @@ Rules: the 3 methods must differ in effort level (include at least one micro/low
         return []
 
 
+REFINE_AFFIRMATION_SYSTEM = """You are Aura, a warm manifestation guide who rewrites affirmations to be maximally effective.
+
+Rewrite the user's affirmation so it follows ALL seven rules below:
+1. Use the Present Tense — write as if it's happening right now ("I am", "I am choosing"), avoid "I will be"/"I am going to".
+2. Keep it Positive — focus on what you want, not what you avoid; remove "don't/won't/can't/not/stopping".
+3. Make it Personal & Self-Addressed — must start with "I" or "My"; only things within the user's control.
+4. Ensure it's Believable — if it feels like a lie, scale back with bridge phrases ("I am capable of...", "I am willing to believe...").
+5. Keep it Concise & Memorable — a single sentence, 5–12 words.
+6. Infuse Passion & Emotion — include an emotive word (excited, vibrant, relaxed, grateful); avoid "want"/"need".
+7. Focus on Values & Actions — prefer value/action-oriented phrasing."""
+
+
+def refine_affirmation(text: str, method: Optional[str] = None) -> dict:
+    """
+    Ask Aura (Claude) to rewrite the user's affirmation so it follows the seven
+    affirmation rules. Returns {"refined","tips","changed"}.
+
+    On ANY failure (missing key, API error, invalid JSON) falls back to a
+    deterministic rule-based refiner — never raises.
+    """
+    original = (text or "").strip()
+
+    if not settings.ANTHROPIC_API_KEY:
+        return _fallback_refine(text)
+
+    context = f"\nThe user is practicing the '{method}' method." if method else ""
+
+    prompt = f"""Rewrite this affirmation so it follows all seven rules:{context}
+
+Affirmation: {original!r}
+
+Respond ONLY with valid JSON, no markdown:
+{{"refined":"the rewritten affirmation","tips":["...","..."]}}
+where tips are 1-3 very short phrases (max 8 words each) explaining what improved."""
+
+    try:
+        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=400,
+            system=REFINE_AFFIRMATION_SYSTEM,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text_out = "".join(b.text for b in response.content if b.type == "text").strip()
+
+        # Strip accidental markdown fences / stray prose around the JSON object
+        start, end = text_out.find("{"), text_out.rfind("}")
+        if start == -1 or end == -1:
+            return _fallback_refine(text)
+        data = json.loads(text_out[start : end + 1])
+
+        refined = data.get("refined")
+        if not isinstance(refined, str) or not refined.strip():
+            return _fallback_refine(text)
+        refined = refined.strip()
+
+        tips = [
+            t.strip()
+            for t in data.get("tips", [])
+            if isinstance(t, str) and t.strip()
+        ][:3]
+
+        return {
+            "refined": refined,
+            "tips": tips,
+            "changed": refined.lower() != original.lower(),
+        }
+    except (anthropic.APIError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return _fallback_refine(text)
+
+
+def _fallback_refine(text: str) -> dict:
+    """
+    Deterministic, best-effort rule-based affirmation refiner used when Claude
+    is unavailable. Preserves the user's words — never invents new content.
+    """
+    original = (text or "").strip()
+    if not original:
+        return {"refined": "", "tips": [], "changed": False}
+
+    result = original
+    lowered = result.lower()
+
+    tips: list[str] = []
+
+    # Shift toward present tense (case-insensitive, order matters).
+    present_map = [
+        ("i am going to be ", "i am "),
+        ("i am going to ", "i am "),
+        ("i want to be ", "i am "),
+        ("i want to ", "i "),
+        ("i will be", "i am"),
+        ("i will ", "i am "),
+        ("i need to ", "i "),
+        ("i hope to ", "i "),
+    ]
+    present_fired = False
+    for src, dst in present_map:
+        idx = lowered.find(src)
+        while idx != -1:
+            result = result[:idx] + dst + result[idx + len(src):]
+            lowered = result.lower()
+            present_fired = True
+            idx = lowered.find(src)
+    if present_fired:
+        tips.append("Shifted to present tense")
+
+    # Remove common negatives (simple cases).
+    negative_map = [
+        ("i am not ", "i am "),
+        ("i don't ", "i "),
+        ("i won't ", "i "),
+        ("i can't ", "i can "),
+    ]
+    negative_fired = False
+    for src, dst in negative_map:
+        idx = lowered.find(src)
+        while idx != -1:
+            result = result[:idx] + dst + result[idx + len(src):]
+            lowered = result.lower()
+            negative_fired = True
+            idx = lowered.find(src)
+    if negative_fired:
+        tips.append("Removed negative phrasing")
+
+    # Collapse extra spaces.
+    result = " ".join(result.split())
+
+    # Ensure it starts with a capital "I" and is personal.
+    personal_fired = False
+    if result and not (result.startswith("I") or result.startswith("My")):
+        result = result[0].upper() + result[1:]
+        personal_fired = True
+    elif result.startswith("i "):
+        result = "I " + result[2:]
+        personal_fired = True
+    elif result and result[0].islower():
+        result = result[0].upper() + result[1:]
+
+    # Ensure it ends with a period.
+    if result and result[-1] not in ".!?":
+        result = result + "."
+
+    if personal_fired:
+        tips.append("Made it personal")
+
+    changed = result.strip().lower() != original.lower()
+    if not changed:
+        return {"refined": result, "tips": ["This already reads strong ✦"], "changed": False}
+
+    return {"refined": result, "tips": tips, "changed": True}
+
+
 async def get_aura_response(
     user_message: str,
     user: User,

@@ -30,6 +30,52 @@ export const METHODS: Method[] = [
 export const methodById = (id: string): Method | undefined =>
   METHODS.find((m) => m.id === id);
 
+// How a practice is captured in a lesson, keyed by the app technique id:
+//   'text'  → user writes in-app, Aura refines it
+//   'media' → user uploads a file (image / audio / video)
+export type PracticeKind = 'text' | 'media';
+
+export const APP_KIND: Record<string, PracticeKind> = {
+  affirm: 'text',
+  script: 'text',
+  '369': 'text',
+  '555': 'text',
+  gratitude: 'text',
+  viz: 'media',
+  movie: 'media',
+  meditate: 'media',
+};
+
+// YouTube explainers per app technique id (Lesson 1 of 3 deep-dive links)
+export const APP_VIDEOS: Record<string, { title: string; url: string }[]> = {
+  viz: [
+    { title: 'Visualization that actually works', url: 'https://www.youtube.com/watch?v=W8O-JVQzz5s' },
+    { title: 'How to visualize your goals', url: 'https://www.youtube.com/watch?v=6Qm9wYFjZP0' },
+  ],
+  affirm: [
+    { title: 'How to write affirmations that stick', url: 'https://www.youtube.com/watch?v=LH_A9pR7t9g' },
+    { title: 'Mirror work, explained', url: 'https://www.youtube.com/watch?v=6vHcHOB2Q3Y' },
+  ],
+  movie: [
+    { title: 'Make a vision movie', url: 'https://www.youtube.com/watch?v=lZOB1pZDgLk' },
+  ],
+  script: [
+    { title: 'Scripting / future journaling', url: 'https://www.youtube.com/watch?v=q9nQe6M8v3k' },
+  ],
+  gratitude: [
+    { title: 'The science of gratitude journaling', url: 'https://www.youtube.com/watch?v=WPPPFqsECz0' },
+  ],
+  '369': [
+    { title: 'The 3-6-9 method, step by step', url: 'https://www.youtube.com/watch?v=Q0eK5o9Ol2E' },
+  ],
+  '555': [
+    { title: 'The 55×5 method explained', url: 'https://www.youtube.com/watch?v=8m6dQ1U3q1A' },
+  ],
+  meditate: [
+    { title: 'Guided manifestation meditation', url: 'https://www.youtube.com/watch?v=1ZYbU82GVz4' },
+  ],
+};
+
 // A soft palette per effort tier for the result cards
 export const EFFORT_TONE: Record<Effort, { bg: string; text: string; label: string }> = {
   low:    { bg: '#CBDCC0', text: '#2F3D24', label: 'MICRO' },

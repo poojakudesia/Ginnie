@@ -8,8 +8,8 @@ import { DLTabBar } from './components/DLTabBar';
 import {
   WelcomeScreen, SignInScreen, ProfileSetupScreen,
   WishBuilderScreen, WishesSummaryScreen, QuestionsScreen,
-  TechniquePickerScreen, TutorialScreen, HomeScreen,
-  AffirmScreen, VizScreen, MovieScreen, FeedScreen,
+  EnergyScreen, TechniquePickerScreen, TutorialScreen, PlanScreen,
+  HomeScreen, AffirmScreen, VizScreen, MovieScreen, FeedScreen,
   PathScreen, ProfileScreen,
 } from './screens';
 
@@ -21,7 +21,7 @@ const queryClient = new QueryClient({
 const PUBLIC_SCREENS = new Set([
   'welcome', 'signin',
   'profile-setup', 'wish-builder', 'wishes',
-  'questions', 'techniques', 'tutorial',
+  'questions', 'energy', 'techniques', 'tutorial', 'plan',
 ]);
 // Screens that show the bottom tab bar
 const TABBED_SCREENS = new Set(['home', 'movie', 'affirm', 'journey', 'profile', 'feed']);
@@ -47,8 +47,10 @@ function AppContent() {
       case 'wish-builder':  return <WishBuilderScreen />;
       case 'wishes':        return <WishesSummaryScreen />;
       case 'questions':     return <QuestionsScreen />;
+      case 'energy':        return <EnergyScreen />;
       case 'techniques':    return <TechniquePickerScreen />;
       case 'tutorial':      return <TutorialScreen />;
+      case 'plan':          return <PlanScreen />;
       case 'home':          return <HomeScreen />;
       case 'affirm':        return <AffirmScreen />;
       case 'viz':           return <VizScreen />;

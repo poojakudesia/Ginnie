@@ -34,3 +34,25 @@ export const recommendMethods = async (
     return [];
   }
 };
+
+export interface RefinedAffirmation {
+  refined: string;
+  tips: string[];
+  changed: boolean;
+}
+
+/**
+ * Ask Aura to refine an affirmation (present-tense, positive, personal,
+ * believable, concise, emotive). Throws on failure so the caller can show
+ * an error; the backend itself already falls back to a rule-based refine.
+ */
+export const refineAffirmation = async (
+  text: string,
+  method?: string,
+): Promise<RefinedAffirmation> => {
+  const { data } = await client.post<RefinedAffirmation>('/aura/refine-affirmation', {
+    text,
+    method,
+  });
+  return data;
+};

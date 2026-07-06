@@ -93,9 +93,10 @@ export const QuestionsScreen: React.FC = () => {
   const handleNext = () => {
     if (!current) return;
     if (isLast) {
-      // Persist the full set of answers to the profile, then match
+      // Persist the full set of answers to the profile, then run the
+      // "Aura studied your energy…" interstitial before the match
       setMethodQuiz(answers as MethodQuizAnswers);
-      goto('techniques');
+      goto('energy');
     } else {
       setStep((s) => s + 1);
     }

@@ -17,8 +17,14 @@ from app.schemas.aura import (
     AuraMessageRequest,
     RecommendMethodsRequest,
     RecommendMethodsResponse,
+    RefineAffirmationRequest,
+    RefineAffirmationResponse,
 )
-from app.services.aura_service import stream_aura_response, get_method_recommendations
+from app.services.aura_service import (
+    stream_aura_response,
+    get_method_recommendations,
+    refine_affirmation,
+)
 
 router = APIRouter(prefix="/aura", tags=["aura"])
 
@@ -43,6 +49,15 @@ def recommend_methods(
         top5=top5,
     )
     return RecommendMethodsResponse(recommendations=recs)
+
+
+@router.post("/refine-affirmation", response_model=RefineAffirmationResponse)
+def refine_affirmation_route(
+    payload: RefineAffirmationRequest,
+    current_user: User = Depends(get_current_user),
+):
+    result = refine_affirmation(payload.text, payload.method)
+    return RefineAffirmationResponse(**result)
 
 
 @router.post("/chat")

@@ -4,7 +4,7 @@ import { DLDisplay } from '../components/DLDisplay';
 import { DLLabel } from '../components/DLLabel';
 import { DLAura } from '../components/DLAura';
 import { useAppStore } from '../store/app';
-import { methodById, EFFORT_TONE, Method } from '../lib/methodCatalog';
+import { METHODS, methodById, EFFORT_TONE, Method } from '../lib/methodCatalog';
 import { topScored, fallbackReason, MethodQuizAnswers } from '../lib/methodMatch';
 import { recommendMethods } from '../api/methods';
 
@@ -30,6 +30,7 @@ export const TechniquePickerScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [usedAI, setUsedAI] = useState(false);
+  const [swapIndex, setSwapIndex] = useState<number | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -75,6 +76,20 @@ export const TechniquePickerScreen: React.FC = () => {
     goto('tutorial');
   };
 
+  const applySwap = (method: Method) => {
+    if (swapIndex === null) return;
+    setRecs((prev) =>
+      prev.map((r, i) =>
+        i === swapIndex ? { method, reason: fallbackReason(method, answers) } : r,
+      ),
+    );
+    setSwapIndex(null);
+  };
+
+  // Methods available to swap in (everything not already chosen)
+  const chosenIds = new Set(recs.map((r) => r.method.id));
+  const swapOptions = METHODS.filter((m) => !chosenIds.has(m.id));
+
   if (loading) {
     return (
       <DLScreen pad>
@@ -107,15 +122,14 @@ export const TechniquePickerScreen: React.FC = () => {
   return (
     <DLScreen scroll pad>
       <div style={{ paddingTop: 20 }}>
-        <DLLabel style={{ color: 'var(--btn)' }}>
-          {usedAI ? 'Ginnie’s match ✦' : 'Your match ✦'}
-        </DLLabel>
-        <DLDisplay size="sm" style={{ marginTop: 10, marginBottom: 6 }}>
+        <DLLabel style={{ color: 'var(--btn)' }}>Our Match ✦</DLLabel>
+        <DLDisplay size="md" style={{ marginTop: 10, marginBottom: 10, lineHeight: 1.05 }}>
           Your practices,<br />
           <span style={{ fontStyle: 'italic' }}>chosen for you.</span>
         </DLDisplay>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)', marginBottom: 24, lineHeight: 1.5 }}>
-          Three methods matched to how you dream, build habits, and where you get stuck.
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)', marginBottom: 24, lineHeight: 1.55 }}>
+          Aura reads your energy to match you with the perfect manifestation
+          technique. No wasted effort, just faster alignments.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 32 }}>
@@ -184,28 +198,141 @@ export const TechniquePickerScreen: React.FC = () => {
                   </p>
                 </div>
 
-                <button
-                  onClick={() => startPractice(method)}
-                  style={{
-                    width: '100%',
-                    padding: '13px 20px',
-                    borderRadius: 999,
-                    border: 'none',
-                    background: tone.text,
-                    color: tone.bg,
-                    fontFamily: 'var(--sans)',
-                    fontSize: 14,
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  Start this practice →
-                </button>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => startPractice(method)}
+                    style={{
+                      flex: 1,
+                      padding: '13px 20px',
+                      borderRadius: 999,
+                      border: 'none',
+                      background: tone.text,
+                      color: tone.bg,
+                      fontFamily: 'var(--sans)',
+                      fontSize: 14,
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Start this practice →
+                  </button>
+                  <button
+                    onClick={() => setSwapIndex(i)}
+                    aria-label="Swap this practice"
+                    style={{
+                      flexShrink: 0,
+                      padding: '13px 16px',
+                      borderRadius: 999,
+                      border: `1.5px solid ${tone.text}`,
+                      background: 'transparent',
+                      color: tone.text,
+                      fontFamily: 'var(--mono)',
+                      fontSize: 12,
+                      fontWeight: 600,
+                      letterSpacing: '0.04em',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ⇄ Swap
+                  </button>
+                </div>
               </div>
             );
           })}
         </div>
       </div>
+
+      {/* Swap overlay — pick from all other practices */}
+      {swapIndex !== null && (
+        <div
+          onClick={() => setSwapIndex(null)}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 200,
+            background: 'rgba(0,0,0,0.4)',
+            display: 'flex',
+            alignItems: 'flex-end',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxHeight: '80%',
+              overflowY: 'auto',
+              background: 'var(--paper)',
+              borderTopLeftRadius: 26,
+              borderTopRightRadius: 26,
+              padding: '20px 20px 28px',
+              boxShadow: '0 -10px 40px rgba(0,0,0,0.25)',
+              animation: 'dlFadeUp 0.3s ease',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+              <DLLabel style={{ color: 'var(--btn)' }}>Swap practice</DLLabel>
+              <button
+                onClick={() => setSwapIndex(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--muted)', lineHeight: 1 }}
+              >
+                ×
+              </button>
+            </div>
+            <p style={{ fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', margin: '0 0 16px' }}>
+              Choose any other practice to take this slot.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {swapOptions.map((m) => {
+                const t = EFFORT_TONE[m.effort];
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => applySwap(m)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 12,
+                      textAlign: 'left',
+                      width: '100%',
+                      padding: 12,
+                      borderRadius: 16,
+                      border: '1.5px solid var(--line)',
+                      background: 'var(--card)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 42,
+                        height: 42,
+                        borderRadius: 12,
+                        background: t.bg,
+                        color: t.text,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 20,
+                        flexShrink: 0,
+                      }}
+                    >
+                      {m.emoji}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: 'var(--sans)', fontSize: 14.5, fontWeight: 600, color: 'var(--ink)' }}>
+                        {m.name}
+                      </div>
+                      <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.08em', color: 'var(--muted)', marginTop: 2 }}>
+                        {t.label} · {m.effort.toUpperCase()} EFFORT
+                      </div>
+                    </div>
+                    <span style={{ fontFamily: 'var(--mono)', fontSize: 12, color: 'var(--btn)' }}>Pick →</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </DLScreen>
   );
 };
