@@ -8,6 +8,8 @@ export { EnergyScreen } from './EnergyScreen';
 export { TechniquePickerScreen } from './TechniquePickerScreen';
 export { TutorialScreen } from './TutorialScreen';
 export { PlanScreen } from './PlanScreen';
+export { TrackerScreen } from './TrackerScreen';
+export { EnergyCheckScreen } from './EnergyCheckScreen';
 export { HomeScreen } from './HomeScreen';
 export { AffirmScreen } from './AffirmScreen';
 export { VizScreen } from './VizScreen';

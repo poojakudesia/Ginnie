@@ -9,6 +9,7 @@ import {
   WelcomeScreen, SignInScreen, ProfileSetupScreen,
   WishBuilderScreen, WishesSummaryScreen, QuestionsScreen,
   EnergyScreen, TechniquePickerScreen, TutorialScreen, PlanScreen,
+  TrackerScreen, EnergyCheckScreen,
   HomeScreen, AffirmScreen, VizScreen, MovieScreen, FeedScreen,
   PathScreen, ProfileScreen,
 } from './screens';
@@ -24,7 +25,7 @@ const PUBLIC_SCREENS = new Set([
   'questions', 'energy', 'techniques', 'tutorial', 'plan',
 ]);
 // Screens that show the bottom tab bar
-const TABBED_SCREENS = new Set(['home', 'movie', 'affirm', 'journey', 'profile', 'feed']);
+const TABBED_SCREENS = new Set(['home', 'movie', 'affirm', 'journey', 'profile', 'feed', 'tracker']);
 
 function AppContent() {
   const { screen, goto, palette } = useAppStore();
@@ -51,6 +52,8 @@ function AppContent() {
       case 'techniques':    return <TechniquePickerScreen />;
       case 'tutorial':      return <TutorialScreen />;
       case 'plan':          return <PlanScreen />;
+      case 'tracker':       return <TrackerScreen />;
+      case 'energy-check':  return <EnergyCheckScreen />;
       case 'home':          return <HomeScreen />;
       case 'affirm':        return <AffirmScreen />;
       case 'viz':           return <VizScreen />;

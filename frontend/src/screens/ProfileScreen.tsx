@@ -5,6 +5,8 @@ import { DLLabel } from '../components/DLLabel';
 import { DLCard } from '../components/DLCard';
 import { useAppStore } from '../store/app';
 import { useAuthStore } from '../store/auth';
+import { useTrackerStore } from '../store/tracker';
+import { badgeById } from '../lib/badges';
 
 const TROPHIES = [
   { id: 't1', name: 'First Wish', icon: '⭐', tier: 'bronze', earned: true },
@@ -36,6 +38,8 @@ const SETTINGS = [
 export const ProfileScreen: React.FC = () => {
   const { goto, setPalette, palette, wishes } = useAppStore();
   const { user, logout } = useAuthStore();
+  const earnedBadge = useTrackerStore((s) => s.earnedBadge);
+  const badge = badgeById(earnedBadge);
 
   const level = Math.floor((user?.xp || 240) / 100) + 1;
   const xpProgress = ((user?.xp || 240) % 100);
@@ -80,23 +84,24 @@ export const ProfileScreen: React.FC = () => {
               width: 64,
               height: 64,
               borderRadius: 999,
-              background: 'rgba(255,255,255,0.2)',
+              background: badge ? badge.gradient : 'rgba(255,255,255,0.2)',
               border: '3px solid rgba(255,255,255,0.5)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 28,
+              fontSize: badge ? 30 : 28,
               flexShrink: 0,
+              boxShadow: badge ? '0 4px 16px rgba(0,0,0,0.25)' : 'none',
             }}
           >
-            {user?.name?.[0]?.toUpperCase() || '✦'}
+            {badge ? badge.emoji : (user?.name?.[0]?.toUpperCase() || '✦')}
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontFamily: 'var(--sans)', fontWeight: 600, fontSize: 18, color: '#fff' }}>
               {user?.name || 'Manifestor'}
             </div>
             <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.1em', marginTop: 2 }}>
-              {famMap[user?.familiarity || 'explorer'].toUpperCase()} · LEVEL {level}
+              {badge ? badge.name.toUpperCase() : `${famMap[user?.familiarity || 'explorer'].toUpperCase()} · LEVEL ${level}`}
             </div>
           </div>
         </div>

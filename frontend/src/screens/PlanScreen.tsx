@@ -163,7 +163,7 @@ export const PlanScreen: React.FC = () => {
             variant="primary"
             size="lg"
             fullWidth
-            onClick={() => goto('home')}
+            onClick={() => goto('tracker')}
           >
             Start Manifesting ✦
           </DLButton>
