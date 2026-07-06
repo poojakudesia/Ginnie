@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { Palette, Wish } from '../types';
+import type { MethodQuizAnswers } from '../lib/methodMatch';
 
 interface AppStore {
   screen: string;
@@ -8,6 +9,7 @@ interface AppStore {
   techniques: string[];
   screenHistory: string[];
   authMode: 'signup' | 'signin';
+  methodQuiz: MethodQuizAnswers | null;
   goto: (screen: string) => void;
   goBack: () => void;
   setPalette: (palette: Palette) => void;
@@ -16,6 +18,7 @@ interface AppStore {
   removeWish: (id: string) => void;
   setTechniques: (techniques: string[]) => void;
   setAuthMode: (mode: 'signup' | 'signin') => void;
+  setMethodQuiz: (answers: MethodQuizAnswers) => void;
 }
 
 const PALETTE_VARS: Record<Palette, Record<string, string>> = {
@@ -92,6 +95,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   techniques: [],
   screenHistory: [],
   authMode: 'signup',
+  methodQuiz: null,
 
   goto: (screen) => {
     const current = get().screen;
@@ -127,6 +131,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setTechniques: (techniques) => set({ techniques }),
 
   setAuthMode: (mode) => set({ authMode: mode }),
+
+  setMethodQuiz: (answers) => set({ methodQuiz: answers }),
 }));
 
 export { PALETTE_VARS };

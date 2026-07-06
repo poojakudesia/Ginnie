@@ -13,10 +13,36 @@ from app.core.security import get_current_user
 from app.models.journal import JournalEntry
 from app.models.user import User
 from app.models.wish import Wish
-from app.schemas.aura import AuraMessageRequest
-from app.services.aura_service import stream_aura_response
+from app.schemas.aura import (
+    AuraMessageRequest,
+    RecommendMethodsRequest,
+    RecommendMethodsResponse,
+)
+from app.services.aura_service import stream_aura_response, get_method_recommendations
 
 router = APIRouter(prefix="/aura", tags=["aura"])
+
+
+@router.post("/recommend-methods", response_model=RecommendMethodsResponse)
+def recommend_methods(
+    payload: RecommendMethodsRequest,
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Ginnie picks the 3 best-fit practices from the client's pre-scored top-5.
+    Returns an empty list (not an error) when the AI is unavailable or its
+    output can't be parsed — the client then falls back to the top-3 scored.
+    """
+    top5 = [c.model_dump() for c in payload.top5]
+    recs = get_method_recommendations(
+        modality=payload.modality,
+        habit_style=payload.habitStyle,
+        blocker=payload.blocker,
+        mind_open=payload.mindOpen,
+        mental_state=payload.mentalState,
+        top5=top5,
+    )
+    return RecommendMethodsResponse(recommendations=recs)
 
 
 @router.post("/chat")

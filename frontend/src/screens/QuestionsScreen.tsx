@@ -5,148 +5,174 @@ import { DLDisplay } from '../components/DLDisplay';
 import { DLLabel } from '../components/DLLabel';
 import { DLDots } from '../components/DLDots';
 import { useAppStore } from '../store/app';
+import type { MethodQuizAnswers } from '../lib/methodMatch';
 
-const QUESTIONS = [
+interface Option {
+  id: string;
+  icon: string;
+  label: string;
+}
+
+interface Question {
+  field: keyof MethodQuizAnswers;
+  eyebrow: string;
+  title: string;
+  options: Option[];
+}
+
+const QUESTIONS: Question[] = [
   {
-    hero: '🌅',
-    heroGrad: 'linear-gradient(180deg, #FFD4A3 0%, #FFA07A 100%)',
+    field: 'modality',
+    eyebrow: 'A question of imagination',
+    title: 'When you daydream about something you truly want, how does it show up?',
+    options: [
+      { id: 'visual',  icon: '🎬', label: 'I see it like a movie in my head' },
+      { id: 'verbal',  icon: '🗣️', label: 'I hear myself talking about it, or say it out loud' },
+      { id: 'written', icon: '✍️', label: 'I want to write it down, make notes or lists' },
+      { id: 'feeling', icon: '💓', label: 'I feel it in my body — excitement, warmth, butterflies' },
+    ],
+  },
+  {
+    field: 'habitStyle',
+    eyebrow: 'A question of rhythm',
+    title: "What's your style when building a new daily habit?",
+    options: [
+      { id: 'structured', icon: '📋', label: 'Give me exact steps and a streak to protect' },
+      { id: 'intuitive',  icon: '🌊', label: 'I go with my mood — rigid routines kill it for me' },
+      { id: 'micro',      icon: '⏱️', label: 'Tiny rituals, 5 minutes max' },
+      { id: 'immersive',  icon: '🌙', label: 'Fewer but deep, immersive sessions' },
+    ],
+  },
+  {
+    field: 'blocker',
+    eyebrow: 'A question of friction',
+    title: 'What usually gets in the way after you set an intention?',
+    options: [
+      { id: 'consistency', icon: '😅', label: "I forget / can't stay consistent" },
+      { id: 'doubt',       icon: '🤔', label: 'Doubt creeps in ("is this even working?")' },
+      { id: 'impatience',  icon: '⏳', label: "Impatience about when it'll happen" },
+      { id: 'clarity',     icon: '🌫️', label: "I'm not 100% clear on what I actually want" },
+    ],
+  },
+  {
+    field: 'mindOpen',
+    eyebrow: 'A question of timing',
     title: 'When does your mind feel most open?',
     options: [
-      { id: 'morning', label: 'Morning', icon: '🌄', desc: 'Fresh start energy' },
-      { id: 'walk', label: 'On a walk', icon: '🚶', desc: 'Moving meditation' },
-      { id: 'sleep', label: 'Before sleep', icon: '🌙', desc: 'Dream state' },
-      { id: 'shower', label: 'In the shower', icon: '🚿', desc: 'Flow state' },
+      { id: 'morning',    icon: '🌄', label: 'Morning' },
+      { id: 'walk',       icon: '🚶', label: 'On a walk' },
+      { id: 'shower',     icon: '🚿', label: 'In the shower' },
+      { id: 'meditation', icon: '🧘', label: 'During meditation' },
+      { id: 'sleep',      icon: '🌙', label: 'Before sleep' },
     ],
   },
   {
-    hero: '💭',
-    heroGrad: 'linear-gradient(180deg, #C4B5FD 0%, #7C3AED 100%)',
-    title: "What's your loudest doubt?",
+    field: 'mentalState',
+    eyebrow: 'A question of the heart',
+    title: "What's your current mental state?",
     options: [
-      { id: 'not-ready', label: "I'm not ready", icon: '⏳', desc: 'Timing fear' },
-      { id: 'too-late', label: "It's too late", icon: '🕰', desc: 'Age/time fear' },
-      { id: 'dont-deserve', label: "I don't deserve it", icon: '💔', desc: 'Worth fear' },
-      { id: 'tried-before', label: "I've tried before", icon: '🔄', desc: 'Past fear' },
-    ],
-  },
-  {
-    hero: '⏱',
-    heroGrad: 'linear-gradient(180deg, #86EFAC 0%, #16A34A 100%)',
-    title: 'How much time can you give daily?',
-    options: [
-      { id: '5min', label: '5 min', icon: '⚡', desc: 'Micro sessions' },
-      { id: '10min', label: '10 min', icon: '🔥', desc: 'Power practice' },
-      { id: '15min', label: '15 min', icon: '✨', desc: 'Deep dive' },
-      { id: '20min', label: '20+ min', icon: '🌟', desc: 'Full ritual' },
-    ],
-  },
-  {
-    hero: '✦',
-    heroGrad: 'linear-gradient(180deg, #FCD34D 0%, #D97706 100%)',
-    title: 'Which feels most like belief?',
-    options: [
-      { id: 'writing', label: 'Writing', icon: '✍️', desc: 'Script it' },
-      { id: 'saying', label: 'Saying it aloud', icon: '🗣', desc: 'Affirm it' },
-      { id: 'seeing', label: 'Seeing it', icon: '👁', desc: 'Visualize it' },
-      { id: 'feeling', label: 'Feeling it', icon: '💫', desc: 'Embody it' },
+      { id: 'dont_deserve', icon: '💭', label: "I don't deserve it" },
+      { id: 'not_ready',    icon: '⏳', label: 'I am not ready' },
+      { id: 'too_old',      icon: '🕰', label: 'I am too old' },
+      { id: 'tried_before', icon: '🔄', label: 'I have tried before' },
     ],
   },
 ];
 
 export const QuestionsScreen: React.FC = () => {
-  const goto = useAppStore((s) => s.goto);
+  const { goto, goBack, setMethodQuiz } = useAppStore();
   const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, string>>({});
+  const [answers, setAnswers] = useState<Partial<MethodQuizAnswers>>({});
 
   const q = QUESTIONS[step];
-  const selected = answers[step];
+  const current = answers[q.field];
+  const isLast = step === QUESTIONS.length - 1;
+
+  const choose = (id: string) => setAnswers((a) => ({ ...a, [q.field]: id }));
 
   const handleNext = () => {
-    if (step < QUESTIONS.length - 1) {
-      setStep(step + 1);
+    if (!current) return;
+    if (isLast) {
+      // Persist the full set of answers to the profile, then match
+      setMethodQuiz(answers as MethodQuizAnswers);
+      goto('techniques');
     } else {
-      goto('technique-picker');
+      setStep((s) => s + 1);
     }
   };
 
-  return (
-    <DLScreen pad={false} style={{ background: 'var(--paper)' }}>
-      {/* Hero panel */}
-      <div
-        style={{
-          height: 180,
-          background: q.heroGrad,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 64,
-          flexShrink: 0,
-          transition: 'background 0.4s ease',
-        }}
-      >
-        {q.hero}
-      </div>
+  const handleBack = () => {
+    if (step === 0) goBack();
+    else setStep((s) => s - 1);
+  };
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '20px 20px 32px' }}>
-        <div style={{ marginBottom: 20 }}>
-          <DLLabel style={{ color: 'var(--btn)', marginBottom: 6, display: 'block' }}>
-            Question {step + 1} of {QUESTIONS.length}
-          </DLLabel>
-          <DLDisplay size="sm">{q.title}</DLDisplay>
+  return (
+    <DLScreen scroll pad>
+      <div style={{ paddingTop: 16 }}>
+        {/* Top: back + dots */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }}>
+          <button
+            onClick={handleBack}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.12em',
+              color: 'var(--ink)', padding: 0,
+            }}
+          >
+            ← BACK
+          </button>
+          <DLDots total={QUESTIONS.length} current={step} />
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 12,
-            marginBottom: 24,
-          }}
-        >
-          {q.options.map((opt) => {
-            const isActive = selected === opt.id;
+        <DLLabel style={{ color: 'var(--btn)' }}>
+          Method Match · {step + 1} of {QUESTIONS.length}
+        </DLLabel>
+        <DLDisplay size="sm" style={{ marginTop: 10, marginBottom: 6, lineHeight: 1.12 }}>
+          {q.title}
+        </DLDisplay>
+        <p style={{ fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--muted)', marginBottom: 20 }}>
+          {q.eyebrow}
+        </p>
+
+        {/* Options */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+          {q.options.map((o) => {
+            const on = current === o.id;
             return (
               <button
-                key={opt.id}
-                onClick={() => setAnswers({ ...answers, [step]: opt.id })}
+                key={o.id}
+                onClick={() => choose(o.id)}
                 style={{
-                  borderRadius: 18,
-                  padding: '18px 14px',
-                  background: isActive ? 'var(--accent-soft)' : 'var(--card)',
-                  border: isActive ? '2px solid var(--btn)' : '1.5px solid var(--line)',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'flex-start',
-                  gap: 6,
-                  transition: 'all 0.15s',
-                  boxShadow: isActive ? '0 6px 16px rgba(124,55,99,0.15)' : '0 2px 6px rgba(0,0,0,0.04)',
+                  display: 'flex', alignItems: 'center', gap: 14,
+                  textAlign: 'left', cursor: 'pointer', width: '100%',
+                  padding: '15px 16px',
+                  borderRadius: 16,
+                  background: on ? 'var(--ink)' : 'var(--card)',
+                  color: on ? 'var(--paper)' : 'var(--ink)',
+                  border: `1.5px solid ${on ? 'var(--ink)' : 'var(--line)'}`,
+                  boxShadow: on ? '0 8px 20px rgba(33,31,26,0.16)' : 'none',
+                  transition: 'all 0.18s ease',
                 }}
               >
-                <span style={{ fontSize: 28 }}>{opt.icon}</span>
-                <span style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 500, color: isActive ? 'var(--btn)' : 'var(--ink)' }}>
-                  {opt.label}
-                </span>
-                <span style={{ fontFamily: 'var(--sans)', fontSize: 11, color: 'var(--muted)' }}>
-                  {opt.desc}
+                <span style={{ fontSize: 22, flexShrink: 0, lineHeight: 1 }}>{o.icon}</span>
+                <span style={{ fontFamily: 'var(--sans)', fontSize: 14.5, lineHeight: 1.35, fontWeight: on ? 500 : 400 }}>
+                  {o.label}
                 </span>
               </button>
             );
           })}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-          <DLDots total={QUESTIONS.length} current={step} />
-          <DLButton
-            variant="primary"
-            size="lg"
-            fullWidth
-            disabled={!selected}
-            onClick={handleNext}
-          >
-            {step < QUESTIONS.length - 1 ? 'Next →' : 'Continue →'}
-          </DLButton>
-        </div>
+        <DLButton
+          variant="primary"
+          size="lg"
+          fullWidth
+          disabled={!current}
+          onClick={handleNext}
+          style={{ marginTop: 24, marginBottom: 32 }}
+        >
+          {isLast ? 'Match my practice ✦' : 'Continue →'}
+        </DLButton>
       </div>
     </DLScreen>
   );

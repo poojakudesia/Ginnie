@@ -129,6 +129,70 @@ async def stream_aura_response(
         yield f"data: {error_payload}\n\n"
 
 
+GINNIE_RECOMMEND_SYSTEM = "You are Ginnie, a warm, intuitive manifestation guide."
+
+
+def get_method_recommendations(
+    modality: str,
+    habit_style: str,
+    blocker: str,
+    mind_open: Optional[str],
+    mental_state: Optional[str],
+    top5: list[dict],
+) -> list[dict]:
+    """
+    Ask Ginnie (Claude) to choose the 3 best-fit methods from the pre-scored
+    top-5 candidates. Returns a list of {"id","reason"} dicts.
+
+    Returns [] on any failure (missing key, API error, invalid JSON) so the
+    caller can fall back to the top-scored methods.
+    """
+    if not settings.ANTHROPIC_API_KEY:
+        return []
+
+    top5_json = json.dumps(top5, ensure_ascii=False)
+
+    prompt = f"""A user answered these questions:
+- Modality (how a wish shows up for them): {modality}
+- Habit style: {habit_style}
+- Biggest blocker: {blocker}
+- When their mind feels most open: {mind_open or 'not specified'}
+- Current mental state / limiting belief: {mental_state or 'not specified'}
+
+Candidate methods (pre-scored): {top5_json}
+
+Choose the 3 best-fit methods. Respond ONLY with valid JSON, no markdown:
+{{"recommendations":[{{"id":"...","reason":"one warm sentence, max 20 words, addressing the user directly, referencing their answers"}}]}}
+Rules: the 3 methods must differ in effort level (include at least one micro/low-effort option). The reason must connect to their blocker."""
+
+    try:
+        client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
+        response = client.messages.create(
+            model=MODEL,
+            max_tokens=600,
+            system=GINNIE_RECOMMEND_SYSTEM,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        text = "".join(b.text for b in response.content if b.type == "text").strip()
+
+        # Strip accidental markdown fences / stray prose around the JSON object
+        start, end = text.find("{"), text.rfind("}")
+        if start == -1 or end == -1:
+            return []
+        data = json.loads(text[start : end + 1])
+
+        candidate_ids = {m.get("id") for m in top5}
+        recs: list[dict] = []
+        for r in data.get("recommendations", []):
+            rid = r.get("id")
+            reason = r.get("reason")
+            if rid in candidate_ids and isinstance(reason, str) and reason.strip():
+                recs.append({"id": rid, "reason": reason.strip()})
+        return recs[:3]
+    except (anthropic.APIError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return []
+
+
 async def get_aura_response(
     user_message: str,
     user: User,
