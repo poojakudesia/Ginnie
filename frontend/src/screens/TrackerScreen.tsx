@@ -6,6 +6,8 @@ import { useAppStore } from '../store/app';
 import { useTrackerStore } from '../store/tracker';
 import { practiceMeta, MOODS } from '../lib/practices';
 import { badgeForRate } from '../lib/badges';
+import { pendingReviewWish, timelineLabel } from '../lib/wishTimeline';
+import { updateWish } from '../api/wishes';
 
 const DAYS_SHOWN = 14;
 const WEEKDAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -15,11 +17,26 @@ const dayKey = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
 export const TrackerScreen: React.FC = () => {
-  const { goto, techniques } = useAppStore();
-  const { days, toggleCheck, setProof, setMood, earnedBadge, setBadge, lastEnergyCheck } =
+  const { goto, techniques, wishes, manifestWish } = useAppStore();
+  const { days, toggleCheck, setProof, setMood, earnedBadge, setBadge, lastEnergyCheck, reviewedWishes, markReviewed } =
     useTrackerStore();
 
   const practiceIds = techniques.length > 0 ? techniques : ['viz', 'affirm', 'gratitude'];
+
+  // A wish whose timeline has elapsed and hasn't been reviewed yet
+  const pending = pendingReviewWish(wishes, reviewedWishes);
+  const [celebrated, setCelebrated] = useState<{ title: string } | null>(null);
+  const activeWishes = wishes.filter((w) => !w.is_manifested).length;
+
+  const reviewAchieved = (achieved: boolean) => {
+    if (!pending) return;
+    markReviewed(pending.id);
+    if (achieved) {
+      manifestWish(pending.id);
+      updateWish(pending.id, { is_manifested: true, pct_complete: 100 }).catch(() => {});
+      setCelebrated({ title: pending.title });
+    }
+  };
 
   // Build the last N days (newest first). Runtime browser code — new Date() is fine.
   const dayList = useMemo(() => {
@@ -318,6 +335,69 @@ export const TrackerScreen: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Wish completion review — timeline reached */}
+      {pending && !celebrated && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', padding: 24 }}>
+          <div style={{ width: '100%', background: 'var(--paper)', borderRadius: 26, padding: '26px 22px', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', animation: 'dlFadeUp 0.35s ease' }}>
+            <div style={{ fontSize: 34, textAlign: 'center', marginBottom: 6 }}>🌟</div>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.14em', color: 'var(--btn)', textAlign: 'center', textTransform: 'uppercase' }}>
+              {timelineLabel(pending.timeline)} journey complete
+            </div>
+            <DLDisplay size="sm" center style={{ marginTop: 10, marginBottom: 8 }}>
+              Did it <span style={{ fontStyle: 'italic' }}>come true?</span>
+            </DLDisplay>
+            <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 17, color: 'var(--ink-2)', textAlign: 'center', lineHeight: 1.4, margin: '0 0 20px' }}>
+              "{pending.title}"
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              <button
+                onClick={() => reviewAchieved(true)}
+                style={{ width: '100%', padding: '15px', borderRadius: 999, border: 'none', background: 'linear-gradient(135deg, var(--btn), var(--btn-deep))', color: 'var(--btn-text)', fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+              >
+                Yes — it manifested! 🎉
+              </button>
+              <button
+                onClick={() => reviewAchieved(false)}
+                style={{ width: '100%', padding: '14px', borderRadius: 999, border: '1.5px solid var(--line-strong)', background: 'transparent', color: 'var(--ink)', fontFamily: 'var(--sans)', fontSize: 14, cursor: 'pointer' }}
+              >
+                Not yet — I'm still becoming
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Celebration + add-another-wish */}
+      {celebrated && (
+        <div style={{ position: 'absolute', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', padding: 24 }}>
+          <div style={{ width: '100%', background: 'var(--paper)', borderRadius: 26, padding: '28px 22px', textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', animation: 'dlFadeUp 0.35s ease' }}>
+            <div style={{ fontSize: 44, marginBottom: 8 }}>🎉</div>
+            <DLDisplay size="sm" center style={{ marginBottom: 8 }}>
+              You <span style={{ fontStyle: 'italic' }}>manifested it.</span>
+            </DLDisplay>
+            <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)', lineHeight: 1.5, margin: '0 0 22px' }}>
+              "{celebrated.title}" is complete ✦ Your energy created this. {activeWishes < 3 ? 'Ready to call in the next one?' : "You're pursuing the max of 3 wishes right now."}
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+              {activeWishes < 3 && (
+                <button
+                  onClick={() => { setCelebrated(null); goto('wish-builder'); }}
+                  style={{ width: '100%', padding: '15px', borderRadius: 999, border: 'none', background: 'linear-gradient(135deg, var(--btn), var(--btn-deep))', color: 'var(--btn-text)', fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 600, cursor: 'pointer' }}
+                >
+                  + Add a new wish
+                </button>
+              )}
+              <button
+                onClick={() => setCelebrated(null)}
+                style={{ width: '100%', padding: '14px', borderRadius: 999, border: '1.5px solid var(--line-strong)', background: 'transparent', color: 'var(--ink)', fontFamily: 'var(--sans)', fontSize: 14, cursor: 'pointer' }}
+              >
+                Keep manifesting
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DLScreen>
   );
 };

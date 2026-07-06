@@ -5,6 +5,7 @@ export interface User {
   avatar_url?: string;
   phone?: string;
   familiarity: 'explorer' | 'catalyst' | 'master';
+  last_screen?: string;
   xp: number;
   streak_count: number;
   techniques: string[];

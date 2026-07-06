@@ -13,7 +13,9 @@ const CARD_TONES = [
 
 export const WishesSummaryScreen: React.FC = () => {
   const { goto, goBack, wishes, removeWish } = useAppStore();
-  const count = wishes.length;
+  // Only wishes still in progress count toward the cap of 3
+  const active = wishes.filter((w) => !w.is_manifested);
+  const count = active.length;
 
   return (
     <DLScreen scroll pad={false}>
@@ -105,7 +107,7 @@ export const WishesSummaryScreen: React.FC = () => {
 
         {/* Goal cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginBottom: 16 }}>
-          {wishes.map((wish, i) => {
+          {active.map((wish, i) => {
             const tone = CARD_TONES[i % CARD_TONES.length];
             return (
               <div

@@ -305,6 +305,7 @@ export const SignInScreen: React.FC = () => {
   const goto = useAppStore((s) => s.goto);
   const authMode = useAppStore((s) => s.authMode);
   const setWishes = useAppStore((s) => s.setWishes);
+  const setTechniques = useAppStore((s) => s.setTechniques);
   const { setUser, setToken } = useAuthStore();
 
   // mode — initialized from how the user entered (Let's Begin = signup,
@@ -382,15 +383,36 @@ export const SignInScreen: React.FC = () => {
   const finishAuth = async (result: AuthResponse) => {
     setUser(result.user);
     setToken(result.access_token);
+
+    const u = result.user;
+    // Restore chosen practices into the app so the tracker/plan reflect them
+    if (u.techniques && u.techniques.length > 0) setTechniques(u.techniques);
+
     try {
       const existing = await getWishes();
+      if (existing && existing.length > 0) setWishes(existing);
+
+      // 1) Already practicing → always land on the Practice timeline
+      if (u.techniques && u.techniques.length > 0) {
+        goto('tracker');
+        return;
+      }
+      // 2) Mid-onboarding → resume exactly where they left off
+      const RESUMABLE = new Set([
+        'profile-setup', 'wish-builder', 'wishes',
+        'questions', 'energy', 'techniques', 'tutorial', 'plan', 'tracker',
+      ]);
+      if (u.last_screen && RESUMABLE.has(u.last_screen)) {
+        goto(u.last_screen);
+        return;
+      }
+      // 3) Has wishes but no saved stage → resume at the wishes summary
       if (existing && existing.length > 0) {
-        setWishes(existing);
-        goto('home');
+        goto('wishes');
         return;
       }
     } catch {
-      // ignore — fall through to onboarding
+      // network issue — fall through to onboarding start
     }
     goto('profile-setup');
   };

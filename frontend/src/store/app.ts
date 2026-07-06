@@ -16,6 +16,7 @@ interface AppStore {
   setWishes: (wishes: Wish[]) => void;
   addWish: (wish: Wish) => void;
   removeWish: (id: string) => void;
+  manifestWish: (id: string) => void;
   setTechniques: (techniques: string[]) => void;
   setAuthMode: (mode: 'signup' | 'signin') => void;
   setMethodQuiz: (answers: MethodQuizAnswers) => void;
@@ -127,6 +128,13 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   removeWish: (id) =>
     set((state) => ({ wishes: state.wishes.filter((w) => w.id !== id) })),
+
+  manifestWish: (id) =>
+    set((state) => ({
+      wishes: state.wishes.map((w) =>
+        w.id === id ? { ...w, is_manifested: true, pct_complete: 100 } : w,
+      ),
+    })),
 
   setTechniques: (techniques) => set({ techniques }),
 

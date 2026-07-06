@@ -7,6 +7,7 @@ import { useAppStore } from '../store/app';
 import { METHODS, methodById, EFFORT_TONE, Method } from '../lib/methodCatalog';
 import { topScored, fallbackReason, MethodQuizAnswers } from '../lib/methodMatch';
 import { recommendMethods } from '../api/methods';
+import { saveTechniques } from '../api/auth';
 
 interface Recommendation {
   method: Method;
@@ -71,8 +72,11 @@ export const TechniquePickerScreen: React.FC = () => {
 
   const startPractice = (method: Method) => {
     // Adopt all three recommended practices, lead with the chosen one
-    const ids = [method.appId, ...recs.map((r) => r.method.appId).filter((id) => id !== method.appId)];
-    setTechniques(Array.from(new Set(ids)));
+    const ids = Array.from(
+      new Set([method.appId, ...recs.map((r) => r.method.appId).filter((id) => id !== method.appId)]),
+    );
+    setTechniques(ids);
+    saveTechniques(ids); // persist to profile → "started practice" on next login
     goto('tutorial');
   };
 

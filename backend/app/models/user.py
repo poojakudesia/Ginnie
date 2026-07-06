@@ -23,6 +23,9 @@ class User(Base):
     avatar_url: Mapped[Optional[str]] = mapped_column(String(1024), nullable=True)
     phone: Mapped[Optional[str]] = mapped_column(String(30), nullable=True)
 
+    # Resume progress: the last onboarding/practice screen the user was on
+    last_screen: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+
     # OAuth fields
     oauth_provider: Mapped[Optional[str]] = mapped_column(
         String(50), nullable=True

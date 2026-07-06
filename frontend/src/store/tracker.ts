@@ -22,12 +22,14 @@ interface TrackerStore {
   energyChecks: EnergyCheckResult[];
   lastEnergyCheck?: string;
   earnedBadge?: string;              // badge id — becomes profile pic
+  reviewedWishes: string[];          // wish ids whose completion was reviewed
 
   toggleCheck: (date: string, appId: string) => void;
   setProof: (date: string, appId: string, name: string) => void;
   setMood: (date: string, mood: string) => void;
   recordEnergyCheck: (r: EnergyCheckResult) => void;
   setBadge: (id: string) => void;
+  markReviewed: (wishId: string) => void;
 }
 
 const emptyDay = (): DayRecord => ({ checks: {} });
@@ -37,6 +39,7 @@ export const useTrackerStore = create<TrackerStore>()(
     (set) => ({
       days: {},
       energyChecks: [],
+      reviewedWishes: [],
 
       toggleCheck: (date, appId) =>
         set((state) => {
@@ -67,6 +70,13 @@ export const useTrackerStore = create<TrackerStore>()(
         })),
 
       setBadge: (id) => set({ earnedBadge: id }),
+
+      markReviewed: (wishId) =>
+        set((state) =>
+          state.reviewedWishes.includes(wishId)
+            ? state
+            : { reviewedWishes: [...state.reviewedWishes, wishId] },
+        ),
     }),
     { name: 'dream-life-tracker' },
   ),

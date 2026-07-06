@@ -10,22 +10,25 @@ import { DLDisplay } from '../components/DLDisplay';
 import { useAppStore } from '../store/app';
 import { Wish } from '../types';
 import { looksLikeGibberish, analyzeWish } from '../lib/wishAnalysis';
+import { createWish } from '../api/wishes';
 
 const CATEGORIES = ['Career', 'Love', 'Health', 'Wealth', 'Travel', 'Purpose'];
 const PROGRESS = ['Not started', 'In progress', 'Close'];
 const TIMELINES = ['3m', '6m', '1y', '3y'];
 
 export const WishBuilderScreen: React.FC = () => {
-  const { goto, addWish, wishes } = useAppStore();
+  const { goto, addWish, wishes, techniques } = useAppStore();
   const [goal, setGoal] = useState('');
   const [category, setCategory] = useState('');
   const [why, setWhy] = useState('');
   const [progress, setProgress] = useState(0);
   const [timeline, setTimeline] = useState('');
   const [goalTouched, setGoalTouched] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  // The wish currently being entered = however many are already saved
-  const wishIndex = wishes.length;
+  // Only wishes still being pursued count toward the cap of 3.
+  const activeCount = wishes.filter((w) => !w.is_manifested).length;
+  const wishIndex = activeCount;
 
   // Validation: a real, readable goal (not random/gibberish text)
   const isGibberish = goal.trim().length > 0 && looksLikeGibberish(goal);
@@ -39,9 +42,9 @@ export const WishBuilderScreen: React.FC = () => {
       ? analyzeWish(goal, category, timeline)
       : null;
 
-  const canContinue = !!(goal && category && why && timeline) && !isGibberish;
-  // Room for more after saving this one? (hard cap of 3 total)
-  const canAddAnother = wishIndex < 2;
+  const canContinue = !!(goal && category && why && timeline) && !isGibberish && !saving;
+  // Room for more after saving this one? (cap of 3 active wishes)
+  const canAddAnother = activeCount < 2;
 
   const buildWish = (): Wish => ({
     id: Date.now().toString(),
@@ -55,6 +58,27 @@ export const WishBuilderScreen: React.FC = () => {
     created_at: new Date().toISOString(),
   });
 
+  // Persist the wish to the user's profile (backend), then to the local store.
+  // Falls back to a local-only wish if the network call fails.
+  const saveWish = async (): Promise<void> => {
+    const local = buildWish();
+    setSaving(true);
+    try {
+      const server = await createWish({
+        title: local.title,
+        category: local.category,
+        why: local.why,
+        progress_label: local.progress_label,
+        timeline: local.timeline,
+      });
+      addWish(server);
+    } catch {
+      addWish(local);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const resetForm = () => {
     setGoal('');
     setCategory('');
@@ -63,13 +87,15 @@ export const WishBuilderScreen: React.FC = () => {
     setTimeline('');
   };
 
-  const handleContinue = () => {
-    addWish(buildWish());
-    goto('wishes');
+  const handleContinue = async () => {
+    await saveWish();
+    // Adding a wish after onboarding (already practicing) returns to the
+    // tracker; during onboarding it proceeds to the wishes summary.
+    goto(techniques.length > 0 ? 'tracker' : 'wishes');
   };
 
-  const handleAddAnother = () => {
-    addWish(buildWish());
+  const handleAddAnother = async () => {
+    await saveWish();
     resetForm();
     // Bring the freshly blank form back into view
     const scroller = document.querySelector('[data-dl-screen-scroll]');

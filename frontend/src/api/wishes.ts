@@ -12,7 +12,7 @@ export const createWish = async (payload: Omit<Wish, 'id' | 'created_at' | 'pct_
 };
 
 export const updateWish = async (id: string, payload: Partial<Wish>): Promise<Wish> => {
-  const { data } = await client.patch<Wish>(`/wishes/${id}`, payload);
+  const { data } = await client.put<Wish>(`/wishes/${id}`, payload);
   return data;
 };
 

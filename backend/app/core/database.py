@@ -41,6 +41,7 @@ def _ensure_columns() -> None:
     a table was first created. PostgreSQL supports ADD COLUMN IF NOT EXISTS."""
     statements = [
         "ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(30)",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_screen VARCHAR(50)",
     ]
     with engine.begin() as conn:
         for stmt in statements:

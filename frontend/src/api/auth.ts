@@ -68,3 +68,13 @@ export const updateMe = async (payload: Partial<User>): Promise<User> => {
   const { data } = await client.put<User>('/auth/me', payload);
   return data;
 };
+
+/** Fire-and-forget: remember the last screen so the user resumes here. */
+export const saveProgress = (last_screen: string): void => {
+  updateMe({ last_screen }).catch(() => {});
+};
+
+/** Fire-and-forget: persist the user's chosen practices to their profile. */
+export const saveTechniques = (techniques: string[]): void => {
+  updateMe({ techniques }).catch(() => {});
+};

@@ -45,6 +45,7 @@ def _build_user_profile(user: User) -> UserProfile:
         avatar_url=user.avatar_url,
         phone=user.phone,
         familiarity=user.familiarity,
+        last_screen=user.last_screen,
         xp=user.xp,
         streak_count=user.streak_count,
         techniques=active_techniques,
@@ -290,6 +291,8 @@ def update_me(
         current_user.avatar_url = payload.avatar_url
     if payload.phone is not None:
         current_user.phone = payload.phone
+    if payload.last_screen is not None:
+        current_user.last_screen = payload.last_screen
 
     if payload.techniques is not None:
         db.query(UserTechnique).filter(UserTechnique.user_id == current_user.id).delete()

@@ -50,6 +50,7 @@ class UserProfile(BaseModel):
     avatar_url: Optional[str] = None
     phone: Optional[str] = None
     familiarity: Optional[str] = None
+    last_screen: Optional[str] = None
     xp: int
     streak_count: int
     techniques: list[str] = []
@@ -63,6 +64,7 @@ class UpdateProfileRequest(BaseModel):
     techniques: Optional[list[str]] = None
     avatar_url: Optional[str] = None
     phone: Optional[str] = None
+    last_screen: Optional[str] = None
 
     @field_validator("familiarity")
     @classmethod

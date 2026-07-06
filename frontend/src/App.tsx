@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAppStore, applyPalette } from './store/app';
 import { useAuthStore } from './store/auth';
+import { saveProgress } from './api/auth';
 import { IOSFrame } from './components/IOSFrame';
 import { DLTabBar } from './components/DLTabBar';
 import {
@@ -26,12 +27,22 @@ const PUBLIC_SCREENS = new Set([
 ]);
 // Screens that show the bottom tab bar
 const TABBED_SCREENS = new Set(['home', 'movie', 'affirm', 'journey', 'profile', 'feed', 'tracker']);
+// Screens worth remembering so the user resumes here next login
+const RESUMABLE_SCREENS = new Set([
+  'profile-setup', 'wish-builder', 'wishes',
+  'questions', 'energy', 'techniques', 'tutorial', 'plan', 'tracker',
+]);
 
 function AppContent() {
   const { screen, goto, palette } = useAppStore();
   const token = useAuthStore((s) => s.token);
 
   useEffect(() => { applyPalette(palette); }, [palette]);
+
+  // Remember progress: persist the last meaningful screen to the profile
+  useEffect(() => {
+    if (token && RESUMABLE_SCREENS.has(screen)) saveProgress(screen);
+  }, [screen, token]);
 
   // Route protection: if no token and trying to access protected screen, redirect to signin
   useEffect(() => {
