@@ -10,7 +10,7 @@ import {
   WelcomeScreen, SignInScreen, ProfileSetupScreen,
   WishBuilderScreen, WishesSummaryScreen, QuestionsScreen,
   EnergyScreen, TechniquePickerScreen, TutorialScreen, PlanScreen,
-  TrackerScreen, EnergyCheckScreen,
+  TrackerScreen, EnergyCheckScreen, ManifestScreen,
   HomeScreen, AffirmScreen, VizScreen, MovieScreen, FeedScreen,
   PathScreen, ProfileScreen,
 } from './screens';
@@ -26,7 +26,7 @@ const PUBLIC_SCREENS = new Set([
   'questions', 'energy', 'techniques', 'tutorial', 'plan',
 ]);
 // Screens that show the bottom tab bar
-const TABBED_SCREENS = new Set(['home', 'movie', 'affirm', 'journey', 'profile', 'feed', 'tracker']);
+const TABBED_SCREENS = new Set(['home', 'movie', 'affirm', 'journey', 'profile', 'feed', 'tracker', 'manifest']);
 // Screens worth remembering so the user resumes here next login
 const RESUMABLE_SCREENS = new Set([
   'profile-setup', 'wish-builder', 'wishes',
@@ -65,6 +65,7 @@ function AppContent() {
       case 'plan':          return <PlanScreen />;
       case 'tracker':       return <TrackerScreen />;
       case 'energy-check':  return <EnergyCheckScreen />;
+      case 'manifest':      return <ManifestScreen />;
       case 'home':          return <HomeScreen />;
       case 'affirm':        return <AffirmScreen />;
       case 'viz':           return <VizScreen />;

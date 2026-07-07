@@ -21,6 +21,30 @@ export const timelineElapsed = (wish: Wish): boolean => {
   return new Date().getTime() >= due.getTime();
 };
 
+export interface WishProgress {
+  pct: number;        // 0–100, time elapsed toward the timeline
+  daysLeft: number;   // whole days remaining (0 once due)
+  totalDays: number;
+}
+
+/** Live progress of an active wish based on its timeline. */
+export const wishProgress = (wish: Wish): WishProgress => {
+  const months = TIMELINE_MONTHS[wish.timeline] ?? 12;
+  const created = new Date(wish.created_at);
+  const start = isNaN(created.getTime()) ? new Date() : created;
+  const due = new Date(start);
+  due.setMonth(due.getMonth() + months);
+
+  const now = Date.now();
+  const total = due.getTime() - start.getTime();
+  const elapsed = now - start.getTime();
+  const pct = total > 0 ? Math.max(0, Math.min(100, (elapsed / total) * 100)) : 0;
+  const dayMs = 1000 * 60 * 60 * 24;
+  const daysLeft = Math.max(0, Math.ceil((due.getTime() - now) / dayMs));
+  const totalDays = Math.max(1, Math.round(total / dayMs));
+  return { pct, daysLeft, totalDays };
+};
+
 /**
  * The first wish that has reached its timeline, isn't already manifested,
  * and hasn't been reviewed yet — or null.

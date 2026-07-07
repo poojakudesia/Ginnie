@@ -222,6 +222,30 @@ export const TrackerScreen: React.FC = () => {
             </button>
           )}
         </div>
+
+        {/* Wishes progress / manifestations */}
+        <button
+          onClick={() => goto('manifest')}
+          style={{
+            marginTop: 10, width: '100%', cursor: 'pointer',
+            border: 'none', borderRadius: 14, padding: '12px 16px',
+            background: 'linear-gradient(135deg, #F5DA8E 0%, #DC9A3C 100%)',
+            color: '#3A2A08', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 17 }}>🏆</span>
+            <div style={{ textAlign: 'left' }}>
+              <div style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 600 }}>
+                Your wishes & manifestations
+              </div>
+              <div style={{ fontFamily: 'var(--mono)', fontSize: 10, opacity: 0.72, letterSpacing: '0.04em' }}>
+                See how far you've come
+              </div>
+            </div>
+          </div>
+          <span style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>→</span>
+        </button>
       </div>
 
       {/* Day timeline */}
