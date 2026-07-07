@@ -192,6 +192,36 @@ export const TrackerScreen: React.FC = () => {
           </div>
           <span style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>→</span>
         </button>
+
+        {/* Quick actions: revisit the guide + add more wishes */}
+        <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
+          <button
+            onClick={() => goto('tutorial')}
+            style={{
+              flex: 1, cursor: 'pointer',
+              border: '1.5px solid var(--line)', background: 'var(--card)',
+              borderRadius: 14, padding: '11px 12px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+              fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 500, color: 'var(--ink)',
+            }}
+          >
+            <span style={{ fontSize: 15 }}>📖</span> Practice guide
+          </button>
+          {activeWishes < 3 && (
+            <button
+              onClick={() => goto('wish-builder')}
+              style={{
+                flex: 1, cursor: 'pointer',
+                border: 'none', background: 'var(--accent-soft)',
+                borderRadius: 14, padding: '11px 12px',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
+                fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 500, color: 'var(--btn)',
+              }}
+            >
+              <span style={{ fontSize: 15 }}>＋</span> Add a wish
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Day timeline */}
