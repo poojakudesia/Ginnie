@@ -11,9 +11,16 @@ Manifestation meets modern tech. A wellness app with AI guide "Aura" (powered by
 | State | Zustand + React Query |
 | Backend | Python 3.12 + FastAPI |
 | Database | PostgreSQL 16 + SQLAlchemy 2.0 |
-| Auth | JWT + OAuth (Google / Apple / Spotify) |
+| Auth | JWT + OAuth (Google / Facebook) |
 | AI | Anthropic Claude (claude-opus-4-7) with adaptive thinking |
 | Infra | Docker Compose |
+| Mobile | Capacitor (iOS + Android) — see [MOBILE.md](./MOBILE.md) |
+
+## 📱 App Store / Google Play
+
+The web app is packaged for the stores with Capacitor. Full build & submission
+steps are in **[MOBILE.md](./MOBILE.md)**; store listing copy is in
+[`store-assets/listing.md`](./store-assets/listing.md).
 
 ## Quick Start
 

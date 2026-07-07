@@ -32,6 +32,8 @@ class Settings(BaseSettings):
 
     # Frontend
     FRONTEND_URL: str = "http://localhost:5173"
+    # Optional regex to allow additional production origins (e.g. your web host)
+    CORS_ORIGIN_REGEX: Optional[str] = None
 
     # XP / Gamification constants
     XP_PER_JOURNAL_ENTRY: int = 10

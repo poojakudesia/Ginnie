@@ -1,0 +1,39 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8E4472"/>
+      <stop offset="0.55" stop-color="#7C3763"/>
+      <stop offset="1" stop-color="#4B2450"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.42" r="0.55">
+      <stop offset="0" stop-color="#FFDCEC" stop-opacity="0.95"/>
+      <stop offset="0.34" stop-color="#EBA6C6" stop-opacity="0.5"/>
+      <stop offset="0.72" stop-color="#7C3763" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="star" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#FFE1F0"/>
+    </linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="14"/>
+    </filter>
+  </defs>
+
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <circle cx="512" cy="440" r="330" fill="url(#glow)"/>
+
+  <!-- soft glow behind the sparkle -->
+  <path filter="url(#soft)" fill="#FFC9E4" opacity="0.7"
+        d="M512 232 Q512 452 742 452 Q512 452 512 672 Q512 452 282 452 Q512 452 512 232 Z"/>
+  <!-- main four-point sparkle -->
+  <path fill="url(#star)"
+        d="M512 232 Q512 452 742 452 Q512 452 512 672 Q512 452 282 452 Q512 452 512 232 Z"/>
+
+  <!-- small companion sparkles -->
+  <path fill="#FFE7F3" opacity="0.95" d="M760 300 Q760 356 816 356 Q760 356 760 412 Q760 356 704 356 Q760 356 760 300 Z"/>
+  <path fill="#FFE7F3" opacity="0.85" d="M286 604 Q286 648 330 648 Q286 648 286 692 Q286 648 242 648 Q286 648 286 604 Z"/>
+
+  <!-- wordmark -->
+  <text x="512" y="812" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif"
+        font-style="italic" font-size="96" fill="#FFF3F9" letter-spacing="1">Dream</text>
+</svg>

@@ -5,7 +5,7 @@ import { DLLabel } from '../components/DLLabel';
 import { useAppStore } from '../store/app';
 import { useTrackerStore } from '../store/tracker';
 import { practiceMeta, MOODS } from '../lib/practices';
-import { badgeForRate } from '../lib/badges';
+import { badgeForRate, badgeById } from '../lib/badges';
 import { pendingReviewWish, timelineLabel } from '../lib/wishTimeline';
 import { updateWish } from '../api/wishes';
 
@@ -54,8 +54,14 @@ export const TrackerScreen: React.FC = () => {
 
   // In-memory proof previews (object URLs) keyed by `${dayKey}:${appId}`
   const [proofUrls, setProofUrls] = useState<Record<string, string>>({});
+  const proofUrlsRef = useRef<Record<string, string>>({});
   const fileInput = useRef<{ date: string; appId: string } | null>(null);
   const hiddenInputRef = useRef<HTMLInputElement>(null);
+
+  // Release object URLs when the screen unmounts to avoid blob leaks
+  useEffect(() => () => {
+    Object.values(proofUrlsRef.current).forEach((u) => URL.revokeObjectURL(u));
+  }, []);
 
   const countDone = (key: string) =>
     practiceIds.filter((id) => days[key]?.checks[id]?.done).length;
@@ -80,11 +86,12 @@ export const TrackerScreen: React.FC = () => {
     [days, dayList],
   );
 
-  // Once the user has logged a meaningful week (>= 7 completions), lock in the badge
+  // Once the user has logged a meaningful week (>= 7 completions), lock in the
+  // badge — but never downgrade a badge they've already earned.
   useEffect(() => {
-    if (totalDone >= 7 && earnedBadge !== badge.id) {
-      setBadge(badge.id);
-    }
+    if (totalDone < 7) return;
+    const storedRate = earnedBadge ? badgeById(earnedBadge)?.minRate ?? -1 : -1;
+    if (badge.minRate > storedRate) setBadge(badge.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [totalDone, badge.id]);
 
@@ -97,8 +104,13 @@ export const TrackerScreen: React.FC = () => {
     const file = e.target.files?.[0];
     const target = fileInput.current;
     if (!file || !target) return;
+    const mapKey = `${target.date}:${target.appId}`;
+    // Revoke any previous preview for this slot before replacing it
+    const prev = proofUrlsRef.current[mapKey];
+    if (prev) URL.revokeObjectURL(prev);
     const url = URL.createObjectURL(file);
-    setProofUrls((p) => ({ ...p, [`${target.date}:${target.appId}`]: url }));
+    proofUrlsRef.current = { ...proofUrlsRef.current, [mapKey]: url };
+    setProofUrls((p) => ({ ...p, [mapKey]: url }));
     setProof(target.date, target.appId, file.name);
     e.target.value = '';
   };
@@ -392,7 +404,7 @@ export const TrackerScreen: React.FC = () => {
 
       {/* Wish completion review — timeline reached */}
       {pending && !celebrated && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', padding: 24 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', padding: 24 }}>
           <div style={{ width: '100%', background: 'var(--paper)', borderRadius: 26, padding: '26px 22px', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', animation: 'dlFadeUp 0.35s ease' }}>
             <div style={{ fontSize: 34, textAlign: 'center', marginBottom: 6 }}>🌟</div>
             <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.14em', color: 'var(--btn)', textAlign: 'center', textTransform: 'uppercase' }}>
@@ -424,7 +436,7 @@ export const TrackerScreen: React.FC = () => {
 
       {/* Celebration + add-another-wish */}
       {celebrated && (
-        <div style={{ position: 'absolute', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', padding: 24 }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', padding: 24 }}>
           <div style={{ width: '100%', background: 'var(--paper)', borderRadius: 26, padding: '28px 22px', textAlign: 'center', boxShadow: '0 20px 50px rgba(0,0,0,0.3)', animation: 'dlFadeUp 0.35s ease' }}>
             <div style={{ fontSize: 44, marginBottom: 8 }}>🎉</div>
             <DLDisplay size="sm" center style={{ marginBottom: 8 }}>

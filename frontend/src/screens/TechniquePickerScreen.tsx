@@ -30,7 +30,6 @@ export const TechniquePickerScreen: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [recs, setRecs] = useState<Recommendation[]>([]);
-  const [usedAI, setUsedAI] = useState(false);
   const [swapIndex, setSwapIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -53,12 +52,10 @@ export const TechniquePickerScreen: React.FC = () => {
 
       if (mapped.length >= 3) {
         setRecs(mapped.slice(0, 3));
-        setUsedAI(true);
       } else {
         // Fallback: top-3 scored with a warm local reason line
         const top3 = topScored(answers, 3);
         setRecs(top3.map((method) => ({ method, reason: fallbackReason(method, answers) })));
-        setUsedAI(false);
       }
       setLoading(false);
     };
@@ -251,7 +248,7 @@ export const TechniquePickerScreen: React.FC = () => {
         <div
           onClick={() => setSwapIndex(null)}
           style={{
-            position: 'absolute',
+            position: 'fixed',
             inset: 0,
             zIndex: 200,
             background: 'rgba(0,0,0,0.4)',

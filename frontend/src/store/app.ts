@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { Palette, Wish } from '../types';
 import type { MethodQuizAnswers } from '../lib/methodMatch';
 
@@ -89,7 +90,9 @@ export const applyPalette = (palette: Palette) => {
   });
 };
 
-export const useAppStore = create<AppStore>((set, get) => ({
+export const useAppStore = create<AppStore>()(
+  persist(
+    (set, get) => ({
   screen: 'welcome',
   palette: 'petal',
   wishes: [],
@@ -141,6 +144,20 @@ export const useAppStore = create<AppStore>((set, get) => ({
   setAuthMode: (mode) => set({ authMode: mode }),
 
   setMethodQuiz: (answers) => set({ methodQuiz: answers }),
-}));
+    }),
+    {
+      name: 'dream-life-app',
+      // Persist only serializable progress state (not the action fns)
+      partialize: (state) => ({
+        screen: state.screen,
+        palette: state.palette,
+        wishes: state.wishes,
+        techniques: state.techniques,
+        authMode: state.authMode,
+        methodQuiz: state.methodQuiz,
+      }),
+    },
+  ),
+);
 
 export { PALETTE_VARS };

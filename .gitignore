@@ -25,6 +25,12 @@ dist/
 *.db
 *.sqlite3
 
+# Capacitor native build outputs (regenerated per machine)
+frontend/ios/App/Pods/
+frontend/android/app/build/
+frontend/android/.gradle/
+frontend/android/build/
+
 # Misc
 .DS_Store
 *.log

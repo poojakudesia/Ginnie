@@ -1,4 +1,5 @@
 import { useAuthStore } from '../store/auth';
+import { API_BASE } from './client';
 
 export interface AuraMessage {
   role: 'user' | 'assistant';
@@ -11,7 +12,7 @@ export async function* streamAuraChat(
 ): AsyncGenerator<string> {
   const token = useAuthStore.getState().token;
 
-  const response = await fetch('/api/aura/chat', {
+  const response = await fetch(`${API_BASE}/aura/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
