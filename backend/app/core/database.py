@@ -5,8 +5,14 @@ from typing import Generator
 from app.core.config import settings
 
 
+# Some hosts (Render, Heroku) hand out DATABASE_URLs beginning with the legacy
+# "postgres://" scheme, which SQLAlchemy 2.0 no longer recognizes. Normalize it.
+_db_url = settings.DATABASE_URL
+if _db_url.startswith("postgres://"):
+    _db_url = _db_url.replace("postgres://", "postgresql://", 1)
+
 engine = create_engine(
-    settings.DATABASE_URL,
+    _db_url,
     pool_pre_ping=True,
     pool_recycle=300,
     echo=False,

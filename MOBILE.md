@@ -89,12 +89,64 @@ Re-run `npm run mobile:build` after any web change.
 
 ---
 
-## 6. Android — Google Play
+## 6. Android — Google Play (signed release AAB)
 
-1. In **Android Studio**: **Build → Generate Signed Bundle / APK → Android App
-   Bundle (.aab)**; create/keep an upload keystore (back it up!).
-2. In **Play Console**: create the app, complete the listing, content rating,
-   data-safety form, upload the `.aab` to Internal testing → Production.
+Google Play requires a **signed .aab** (App Bundle), NOT the debug .apk you used
+for testing. Do this from `frontend/`.
+
+### 6a. Create a release keystore (once — back this file up, you cannot recover it)
+```bash
+keytool -genkey -v -keystore ~/dreamlife-release.keystore \
+  -alias dreamlife -keyalg RSA -keysize 2048 -validity 10000
+```
+Remember the passwords you set.
+
+### 6b. Tell Gradle about it
+Create `frontend/android/keystore.properties` (this file is gitignored — never commit it):
+```
+storeFile=/Users/YOU/dreamlife-release.keystore
+storePassword=YOUR_STORE_PASSWORD
+keyAlias=dreamlife
+keyPassword=YOUR_KEY_PASSWORD
+```
+In `frontend/android/app/build.gradle`, inside `android { ... }`, add signing:
+```gradle
+def kp = new Properties()
+def kpFile = rootProject.file("keystore.properties")
+if (kpFile.exists()) { kp.load(new FileInputStream(kpFile)) }
+
+signingConfigs {
+    release {
+        storeFile file(kp['storeFile'])
+        storePassword kp['storePassword']
+        keyAlias kp['keyAlias']
+        keyPassword kp['keyPassword']
+    }
+}
+buildTypes {
+    release {
+        signingConfig signingConfigs.release
+        minifyEnabled false
+    }
+}
+```
+
+### 6c. Build the release AAB (points at your HTTPS backend)
+```bash
+# .env → VITE_API_BASE_URL=https://dreamlife-api.onrender.com   (your deployed URL)
+npm run mobile:build
+cd android
+./gradlew bundleRelease
+```
+Output: `frontend/android/app/build/outputs/bundle/release/app-release.aab`
+
+### 6d. Upload in Play Console
+1. play.google.com/console → **Create app**.
+2. Complete: **App content** (privacy policy URL, data safety, content rating,
+   target audience, ads declaration).
+3. **Testing → Internal testing → Create release** → upload the `.aab` → add
+   testers by email → share the opt-in link (fastest way to try it live).
+4. When ready: **Production → Create release** → upload → submit for review.
 
 ---
 

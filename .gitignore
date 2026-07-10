@@ -31,6 +31,11 @@ frontend/android/app/build/
 frontend/android/.gradle/
 frontend/android/build/
 
+# Android release signing — NEVER commit these
+frontend/android/keystore.properties
+*.keystore
+*.jks
+
 # Misc
 .DS_Store
 *.log
