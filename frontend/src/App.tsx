@@ -11,7 +11,7 @@ import {
   WelcomeScreen, SignInScreen, ProfileSetupScreen,
   WishBuilderScreen, WishesSummaryScreen, QuestionsScreen,
   EnergyScreen, TechniquePickerScreen, TutorialScreen, PlanScreen,
-  TrackerScreen, EnergyCheckScreen, ManifestScreen,
+  TrackerScreen, EnergyCheckScreen, ManifestScreen, LessonsScreen,
   HomeScreen, AffirmScreen, VizScreen, MovieScreen, FeedScreen,
   PathScreen, ProfileScreen,
 } from './screens';
@@ -28,7 +28,7 @@ const PUBLIC_SCREENS = new Set([
 ]);
 // Screens that show the bottom tab bar (the 4 nav destinations + their sub-screens)
 const TABBED_SCREENS = new Set([
-  'tracker', 'manifest', 'wish-builder', 'tutorial', 'profile',
+  'tracker', 'manifest', 'wish-builder', 'lessons', 'tutorial', 'profile',
 ]);
 // Screens worth remembering so the user resumes here next login
 const RESUMABLE_SCREENS = new Set([
@@ -37,7 +37,7 @@ const RESUMABLE_SCREENS = new Set([
 ]);
 // Once the user is practicing, these are the "in-app" screens where a weekly
 // energy check may auto-prompt.
-const IN_APP_SCREENS = new Set(['tracker', 'manifest', 'tutorial', 'profile']);
+const IN_APP_SCREENS = new Set(['tracker', 'manifest', 'lessons', 'profile']);
 
 function AppContent() {
   const { screen, goto, palette } = useAppStore();
@@ -88,6 +88,7 @@ function AppContent() {
       case 'energy':        return <EnergyScreen />;
       case 'techniques':    return <TechniquePickerScreen />;
       case 'tutorial':      return <TutorialScreen />;
+      case 'lessons':       return <LessonsScreen />;
       case 'plan':          return <PlanScreen />;
       case 'tracker':       return <TrackerScreen />;
       case 'energy-check':  return <EnergyCheckScreen />;

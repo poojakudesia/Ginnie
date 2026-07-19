@@ -11,6 +11,7 @@ export { PlanScreen } from './PlanScreen';
 export { TrackerScreen } from './TrackerScreen';
 export { EnergyCheckScreen } from './EnergyCheckScreen';
 export { ManifestScreen } from './ManifestScreen';
+export { LessonsScreen } from './LessonsScreen';
 export { HomeScreen } from './HomeScreen';
 export { AffirmScreen } from './AffirmScreen';
 export { VizScreen } from './VizScreen';

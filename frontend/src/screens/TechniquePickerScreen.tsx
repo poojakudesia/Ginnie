@@ -25,7 +25,7 @@ const DEFAULT_ANSWERS: MethodQuizAnswers = {
 };
 
 export const TechniquePickerScreen: React.FC = () => {
-  const { goto, methodQuiz, setTechniques } = useAppStore();
+  const { goto, methodQuiz, setTechniques, setFocusLesson } = useAppStore();
   const answers = methodQuiz ?? DEFAULT_ANSWERS;
 
   const [loading, setLoading] = useState(true);
@@ -74,6 +74,7 @@ export const TechniquePickerScreen: React.FC = () => {
     );
     setTechniques(ids);
     saveTechniques(ids); // persist to profile → "started practice" on next login
+    setFocusLesson(null); // onboarding runs the full tutorial, not reference mode
     goto('tutorial');
   };
 

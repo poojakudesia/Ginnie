@@ -11,6 +11,7 @@ interface AppStore {
   screenHistory: string[];
   authMode: 'signup' | 'signin';
   methodQuiz: MethodQuizAnswers | null;
+  focusLesson: string | null;   // when set, the tutorial shows this one practice as reference
   goto: (screen: string) => void;
   goBack: () => void;
   setPalette: (palette: Palette) => void;
@@ -21,6 +22,7 @@ interface AppStore {
   setTechniques: (techniques: string[]) => void;
   setAuthMode: (mode: 'signup' | 'signin') => void;
   setMethodQuiz: (answers: MethodQuizAnswers) => void;
+  setFocusLesson: (appId: string | null) => void;
 }
 
 const PALETTE_VARS: Record<Palette, Record<string, string>> = {
@@ -100,6 +102,7 @@ export const useAppStore = create<AppStore>()(
   screenHistory: [],
   authMode: 'signup',
   methodQuiz: null,
+  focusLesson: null,
 
   goto: (screen) => {
     const current = get().screen;
@@ -144,6 +147,8 @@ export const useAppStore = create<AppStore>()(
   setAuthMode: (mode) => set({ authMode: mode }),
 
   setMethodQuiz: (answers) => set({ methodQuiz: answers }),
+
+  setFocusLesson: (appId) => set({ focusLesson: appId }),
     }),
     {
       name: 'dream-life-app',

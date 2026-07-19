@@ -77,8 +77,11 @@ const toneGradients: Record<string, string> = {
 };
 
 export const TutorialScreen: React.FC = () => {
-  const { goto, techniques } = useAppStore();
+  const { goto, techniques, focusLesson, setFocusLesson } = useAppStore();
   const [lessonIndex, setLessonIndex] = useState(0);
+
+  // Reference mode: opened from the Guide tab for a single practice.
+  const reference = !!focusLesson;
 
   // Per-lesson practice capture (write + Aura refine, or file upload)
   const [draft, setDraft] = useState('');
@@ -88,7 +91,10 @@ export const TutorialScreen: React.FC = () => {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const tutorialKeys = techniques.filter((t) => TECHNIQUE_MAP[t]);
-  const lessonKeys = tutorialKeys.length > 0 ? tutorialKeys : ['viz'];
+  // Reference mode shows just the one focused practice; onboarding shows all.
+  const lessonKeys = reference && focusLesson && TECHNIQUE_MAP[focusLesson]
+    ? [focusLesson]
+    : tutorialKeys.length > 0 ? tutorialKeys : ['viz'];
   const currentKey = lessonKeys[lessonIndex];
   const technique = TECHNIQUE_MAP[currentKey] || TECHNIQUES[0];
   const total = lessonKeys.length;
@@ -118,7 +124,17 @@ export const TutorialScreen: React.FC = () => {
     }
   };
 
+  const exitReference = () => {
+    setFocusLesson(null);
+    goto('lessons');
+  };
+
   const handleNext = () => {
+    if (reference) {
+      // Single-practice reference — just return to the lesson list
+      exitReference();
+      return;
+    }
     if (!isLast) {
       setLessonIndex(lessonIndex + 1);
       resetCapture();
@@ -139,6 +155,21 @@ export const TutorialScreen: React.FC = () => {
         transition: 'background 0.6s ease',
       }}
     >
+      {/* Back to lessons (reference mode only) */}
+      {reference && (
+        <div style={{ padding: '16px 20px 0' }}>
+          <button
+            onClick={exitReference}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer', padding: 0,
+              fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.12em', color: '#211F1A',
+            }}
+          >
+            ← LESSONS
+          </button>
+        </div>
+      )}
+
       {/* Progress bars */}
       <div style={{ display: 'flex', gap: 4, padding: '20px 20px 0' }}>
         {Array.from({ length: total }).map((_, i) => (
@@ -491,26 +522,30 @@ export const TutorialScreen: React.FC = () => {
           onClick={handleNext}
           style={{ background: glyphGradient }}
         >
-          {isLast
-            ? 'Build my plan →'
-            : `Next: ${nextTechnique?.name} →`}
+          {reference
+            ? 'Done ✦'
+            : isLast
+              ? 'Build my plan →'
+              : `Next: ${nextTechnique?.name} →`}
         </DLButton>
-        <div style={{ textAlign: 'center', marginTop: 16 }}>
-          <button
-            onClick={() => goto('plan')}
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontFamily: 'var(--sans)',
-              fontSize: 13,
-              color: 'rgba(33,31,26,0.45)',
-              letterSpacing: '0.01em',
-            }}
-          >
-            Skip — I'll learn as I go
-          </button>
-        </div>
+        {!reference && (
+          <div style={{ textAlign: 'center', marginTop: 16 }}>
+            <button
+              onClick={() => goto('plan')}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: 'var(--sans)',
+                fontSize: 13,
+                color: 'rgba(33,31,26,0.45)',
+                letterSpacing: '0.01em',
+              }}
+            >
+              Skip — I'll learn as I go
+            </button>
+          </div>
+        )}
       </div>
     </DLScreen>
   );

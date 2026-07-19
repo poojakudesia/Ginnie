@@ -7,7 +7,7 @@ import { useAppStore } from '../store/app';
 const TABS: { id: string; label: string; icon: string; group: string[] }[] = [
   { id: 'tracker',  label: 'Practice', icon: '◐', group: ['tracker', 'energy-check'] },
   { id: 'manifest', label: 'Wishes',   icon: '✦', group: ['manifest', 'wish-builder', 'wishes'] },
-  { id: 'tutorial', label: 'Guide',    icon: '❖', group: ['tutorial', 'plan'] },
+  { id: 'lessons',  label: 'Guide',    icon: '❖', group: ['lessons', 'tutorial', 'plan'] },
   { id: 'profile',  label: 'You',      icon: '◯', group: ['profile'] },
 ];
 
