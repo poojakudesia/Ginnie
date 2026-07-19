@@ -1,12 +1,14 @@
 import React from 'react';
 import { useAppStore } from '../store/app';
 
-const TABS = [
-  { id: 'home', label: 'Today', icon: '◐' },
-  { id: 'movie', label: 'Movie', icon: '▸' },
-  { id: 'affirm', label: 'Affirm', icon: '✦' },
-  { id: 'feed', label: 'Path', icon: '↑' },
-  { id: 'profile', label: 'You', icon: '◯' },
+// Bottom navigation — the single place to move between the app's areas.
+// Each tab owns a group of screens so the right tab stays highlighted even on
+// sub-screens (e.g. adding a wish keeps "Wishes" active).
+const TABS: { id: string; label: string; icon: string; group: string[] }[] = [
+  { id: 'tracker',  label: 'Practice', icon: '◐', group: ['tracker', 'energy-check'] },
+  { id: 'manifest', label: 'Wishes',   icon: '✦', group: ['manifest', 'wish-builder', 'wishes'] },
+  { id: 'tutorial', label: 'Guide',    icon: '❖', group: ['tutorial', 'plan'] },
+  { id: 'profile',  label: 'You',      icon: '◯', group: ['profile'] },
 ];
 
 export const DLTabBar: React.FC = () => {
@@ -18,13 +20,14 @@ export const DLTabBar: React.FC = () => {
         display: 'flex',
         background: 'var(--card)',
         borderTop: '1px solid var(--line)',
-        paddingBottom: 20,
-        paddingTop: 4,
+        paddingBottom: 22,
+        paddingTop: 6,
         flexShrink: 0,
+        boxShadow: '0 -6px 20px rgba(0,0,0,0.05)',
       }}
     >
       {TABS.map((tab) => {
-        const active = screen === tab.id;
+        const active = tab.group.includes(screen);
         return (
           <button
             key={tab.id}
@@ -34,20 +37,20 @@ export const DLTabBar: React.FC = () => {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              gap: 3,
-              padding: '8px 0',
+              gap: 4,
+              padding: '6px 0',
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              transition: 'opacity 0.15s',
             }}
           >
             <span
               style={{
-                fontSize: 20,
+                fontSize: 19,
+                lineHeight: 1,
                 color: active ? 'var(--btn)' : 'var(--muted)',
                 transition: 'color 0.15s',
-                lineHeight: 1,
+                transform: active ? 'scale(1.08)' : 'scale(1)',
               }}
             >
               {tab.icon}
@@ -55,9 +58,9 @@ export const DLTabBar: React.FC = () => {
             <span
               style={{
                 fontFamily: 'var(--mono)',
-                fontSize: 9,
-                fontWeight: 500,
-                letterSpacing: '0.06em',
+                fontSize: 9.5,
+                fontWeight: active ? 600 : 500,
+                letterSpacing: '0.05em',
                 textTransform: 'uppercase',
                 color: active ? 'var(--btn)' : 'var(--muted)',
                 transition: 'color 0.15s',

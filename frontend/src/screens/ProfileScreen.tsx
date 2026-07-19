@@ -35,10 +35,18 @@ const SETTINGS = [
   { label: 'Sign out', icon: '→', danger: true },
 ];
 
+const ENERGY_TIER_LABEL: Record<string, { label: string; emoji: string }> = {
+  thriving:  { label: 'Thriving',        emoji: '🌟' },
+  flow:      { label: 'In flow',         emoji: '✨' },
+  building:  { label: 'Building rhythm',  emoji: '🌱' },
+  awakening: { label: 'Awakening',       emoji: '🌙' },
+};
+
 export const ProfileScreen: React.FC = () => {
   const { goto, setPalette, palette, wishes } = useAppStore();
   const { user, logout } = useAuthStore();
   const earnedBadge = useTrackerStore((s) => s.earnedBadge);
+  const energyChecks = useTrackerStore((s) => s.energyChecks);
   const badge = badgeById(earnedBadge);
 
   const level = Math.floor((user?.xp || 240) / 100) + 1;
@@ -286,6 +294,51 @@ export const ProfileScreen: React.FC = () => {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Weekly Energy check-ins */}
+        <div style={{ padding: '0 20px 22px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+            <DLLabel>Energy check-ins</DLLabel>
+            <button
+              onClick={() => goto('energy-check')}
+              style={{
+                background: 'var(--accent-soft)', border: 'none', borderRadius: 999,
+                padding: '6px 12px', cursor: 'pointer',
+                fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.06em',
+                color: 'var(--btn)', textTransform: 'uppercase',
+              }}
+            >
+              ⚡ Check in
+            </button>
+          </div>
+          <DLCard tone="paper" pad={0} style={{ overflow: 'hidden' }}>
+            {energyChecks.length === 0 ? (
+              <div style={{ padding: '16px', fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', textAlign: 'center' }}>
+                Your first weekly check-in arrives Saturday ✦
+              </div>
+            ) : (
+              energyChecks.slice(0, 6).map((c, i) => {
+                const t = ENERGY_TIER_LABEL[c.tier] || { label: c.tier, emoji: '✦' };
+                return (
+                  <div
+                    key={`${c.date}-${i}`}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      padding: '12px 16px',
+                      borderTop: i === 0 ? 'none' : '1px solid var(--line)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <span style={{ fontSize: 18 }}>{t.emoji}</span>
+                      <span style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--ink)' }}>{t.label}</span>
+                    </div>
+                    <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--muted)' }}>{c.date}</span>
+                  </div>
+                );
+              })
+            )}
+          </DLCard>
         </div>
 
         {/* Settings */}

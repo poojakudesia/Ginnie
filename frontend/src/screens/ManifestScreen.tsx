@@ -11,7 +11,7 @@ const CATEGORY_TONE: Record<string, string> = {
 };
 
 export const ManifestScreen: React.FC = () => {
-  const { goBack, wishes } = useAppStore();
+  const { goto, wishes } = useAppStore();
 
   const manifested = wishes.filter((w) => w.is_manifested);
   const active = wishes.filter((w) => !w.is_manifested);
@@ -26,31 +26,33 @@ export const ManifestScreen: React.FC = () => {
         }
       `}</style>
 
-      {/* Top bar */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '16px 22px 6px' }}>
-        <button
-          onClick={goBack}
-          style={{
-            background: 'none', border: 'none', cursor: 'pointer',
-            fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.12em',
-            color: 'var(--ink)', padding: 0,
-          }}
-        >
-          ← BACK
-        </button>
-      </div>
-
-      <div style={{ padding: '4px 22px 0' }}>
+      <div style={{ padding: '20px 22px 0' }}>
         <DLLabel style={{ color: 'var(--btn)' }}>Your wishes ✦</DLLabel>
         <DLDisplay size="md" style={{ marginTop: 8, lineHeight: 1.05 }}>
           Where your<br />
           <span style={{ fontStyle: 'italic' }}>dreams stand.</span>
         </DLDisplay>
-        <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)', margin: '10px 0 4px', lineHeight: 1.5 }}>
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)', margin: '10px 0 14px', lineHeight: 1.5 }}>
           {manifested.length > 0
             ? `${manifested.length} manifested · ${active.length} in motion. Look how far you've come.`
             : 'Every rep moves the needle. Keep showing up.'}
         </p>
+
+        {/* Add a wish (up to 3 active) */}
+        {active.length < 3 && (
+          <button
+            onClick={() => goto('wish-builder')}
+            style={{
+              width: '100%', cursor: 'pointer',
+              border: 'none', borderRadius: 14, padding: '13px 16px',
+              background: 'linear-gradient(135deg, var(--btn), var(--btn-deep))',
+              color: 'var(--btn-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              fontFamily: 'var(--sans)', fontSize: 14.5, fontWeight: 600,
+            }}
+          >
+            <span style={{ fontSize: 17 }}>＋</span> Add a wish
+          </button>
+        )}
       </div>
 
       {/* ── Manifested (trophy) section ─────────────────────────── */}

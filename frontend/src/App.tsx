@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAppStore, applyPalette } from './store/app';
 import { useAuthStore } from './store/auth';
+import { useTrackerStore } from './store/tracker';
 import { saveProgress } from './api/auth';
 import { IOSFrame } from './components/IOSFrame';
 import { DLTabBar } from './components/DLTabBar';
@@ -25,17 +26,24 @@ const PUBLIC_SCREENS = new Set([
   'profile-setup', 'wish-builder', 'wishes',
   'questions', 'energy', 'techniques', 'tutorial', 'plan',
 ]);
-// Screens that show the bottom tab bar
-const TABBED_SCREENS = new Set(['home', 'movie', 'affirm', 'journey', 'profile', 'feed', 'tracker', 'manifest']);
+// Screens that show the bottom tab bar (the 4 nav destinations + their sub-screens)
+const TABBED_SCREENS = new Set([
+  'tracker', 'manifest', 'wish-builder', 'tutorial', 'profile',
+]);
 // Screens worth remembering so the user resumes here next login
 const RESUMABLE_SCREENS = new Set([
   'profile-setup', 'wish-builder', 'wishes',
   'questions', 'energy', 'techniques', 'tutorial', 'plan', 'tracker',
 ]);
+// Once the user is practicing, these are the "in-app" screens where a weekly
+// energy check may auto-prompt.
+const IN_APP_SCREENS = new Set(['tracker', 'manifest', 'tutorial', 'profile']);
 
 function AppContent() {
   const { screen, goto, palette } = useAppStore();
   const token = useAuthStore((s) => s.token);
+  const lastEnergyCheck = useTrackerStore((s) => s.lastEnergyCheck);
+  const energyPromptedRef = useRef(false);
 
   useEffect(() => { applyPalette(palette); }, [palette]);
 
@@ -43,6 +51,24 @@ function AppContent() {
   useEffect(() => {
     if (token && RESUMABLE_SCREENS.has(screen)) saveProgress(screen);
   }, [screen, token]);
+
+  // Weekly Energy Check — auto-prompt on Saturdays (no button). Fires once per
+  // app session, only if it's Saturday and no check was recorded in the last 6
+  // days. Completing the check sets lastEnergyCheck=today, so it won't re-fire.
+  useEffect(() => {
+    if (!token || energyPromptedRef.current) return;
+    if (!IN_APP_SCREENS.has(screen)) return;
+    const now = new Date();
+    if (now.getDay() !== 6) return; // 6 = Saturday
+    const sixDaysAgo = new Date(now);
+    sixDaysAgo.setDate(now.getDate() - 6);
+    const cutoff = `${sixDaysAgo.getFullYear()}-${String(sixDaysAgo.getMonth() + 1).padStart(2, '0')}-${String(sixDaysAgo.getDate()).padStart(2, '0')}`;
+    const alreadyThisWeek = lastEnergyCheck && lastEnergyCheck > cutoff;
+    if (!alreadyThisWeek) {
+      energyPromptedRef.current = true;
+      goto('energy-check');
+    }
+  }, [screen, token, lastEnergyCheck, goto]);
 
   // Route protection: if no token and trying to access protected screen, redirect to signin
   useEffect(() => {

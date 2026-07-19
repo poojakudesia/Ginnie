@@ -18,7 +18,7 @@ const dayKey = (d: Date) =>
 
 export const TrackerScreen: React.FC = () => {
   const { goto, techniques, wishes, manifestWish } = useAppStore();
-  const { days, toggleCheck, setProof, setMood, earnedBadge, setBadge, lastEnergyCheck, reviewedWishes, markReviewed } =
+  const { days, toggleCheck, setProof, setMood, earnedBadge, setBadge, reviewedWishes, markReviewed } =
     useTrackerStore();
 
   const practiceIds = techniques.length > 0 ? techniques : ['viz', 'affirm', 'gratitude'];
@@ -124,9 +124,6 @@ export const TrackerScreen: React.FC = () => {
     return { icon: isToday ? '•' : '○', tint: 'var(--muted)' };                    // today / future-neutral
   };
 
-  const energyCheckReady =
-    !lastEnergyCheck || dayList.some((d) => d.isPast && d.key > lastEnergyCheck && totalDone >= 7);
-
   return (
     <DLScreen scroll pad={false}>
       <input
@@ -178,86 +175,6 @@ export const TrackerScreen: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Weekly Energy Check banner */}
-        <button
-          onClick={() => goto('energy-check')}
-          style={{
-            marginTop: 12, width: '100%', textAlign: 'left',
-            borderRadius: 16, padding: '13px 16px', cursor: 'pointer',
-            border: energyCheckReady ? 'none' : '1.5px solid var(--line)',
-            background: energyCheckReady ? 'var(--ink)' : 'var(--card)',
-            color: energyCheckReady ? 'var(--paper)' : 'var(--ink)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 18 }}>⚡</span>
-            <div>
-              <div style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 600 }}>
-                Weekly Energy Check
-              </div>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 10, opacity: 0.7, letterSpacing: '0.04em' }}>
-                {energyCheckReady ? 'Ready — see where you are' : 'Keep going, check in weekly'}
-              </div>
-            </div>
-          </div>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>→</span>
-        </button>
-
-        {/* Quick actions: revisit the guide + add more wishes */}
-        <div style={{ display: 'flex', gap: 10, marginTop: 10 }}>
-          <button
-            onClick={() => goto('tutorial')}
-            style={{
-              flex: 1, cursor: 'pointer',
-              border: '1.5px solid var(--line)', background: 'var(--card)',
-              borderRadius: 14, padding: '11px 12px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-              fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 500, color: 'var(--ink)',
-            }}
-          >
-            <span style={{ fontSize: 15 }}>📖</span> Practice guide
-          </button>
-          {activeWishes < 3 && (
-            <button
-              onClick={() => goto('wish-builder')}
-              style={{
-                flex: 1, cursor: 'pointer',
-                border: 'none', background: 'var(--accent-soft)',
-                borderRadius: 14, padding: '11px 12px',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7,
-                fontFamily: 'var(--sans)', fontSize: 13, fontWeight: 500, color: 'var(--btn)',
-              }}
-            >
-              <span style={{ fontSize: 15 }}>＋</span> Add a wish
-            </button>
-          )}
-        </div>
-
-        {/* Wishes progress / manifestations */}
-        <button
-          onClick={() => goto('manifest')}
-          style={{
-            marginTop: 10, width: '100%', cursor: 'pointer',
-            border: 'none', borderRadius: 14, padding: '12px 16px',
-            background: 'linear-gradient(135deg, #F5DA8E 0%, #DC9A3C 100%)',
-            color: '#3A2A08', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ fontSize: 17 }}>🏆</span>
-            <div style={{ textAlign: 'left' }}>
-              <div style={{ fontFamily: 'var(--sans)', fontSize: 14, fontWeight: 600 }}>
-                Your wishes & manifestations
-              </div>
-              <div style={{ fontFamily: 'var(--mono)', fontSize: 10, opacity: 0.72, letterSpacing: '0.04em' }}>
-                See how far you've come
-              </div>
-            </div>
-          </div>
-          <span style={{ fontFamily: 'var(--mono)', fontSize: 13 }}>→</span>
-        </button>
       </div>
 
       {/* Day timeline */}
