@@ -108,8 +108,19 @@ function AppContent() {
 
   return (
     <IOSFrame>
-      <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-        {renderScreen()}
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
+        {/* Screen fills the remaining space; the nav bar is pinned below it */}
+        <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+          {renderScreen()}
+        </div>
         {showTabs && <DLTabBar />}
       </div>
     </IOSFrame>
