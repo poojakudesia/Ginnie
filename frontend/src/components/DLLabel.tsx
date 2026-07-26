@@ -11,9 +11,9 @@ export const DLLabel: React.FC<DLLabelProps> = ({ children, color, style }) => {
     <span
       style={{
         fontFamily: 'var(--mono)',
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: 500,
-        letterSpacing: '0.10em',
+        letterSpacing: '0.09em',
         textTransform: 'uppercase',
         color: color || 'var(--muted)',
         ...style,

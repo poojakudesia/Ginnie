@@ -6,6 +6,8 @@ import { useAuthStore } from './store/auth';
 import { useTrackerStore } from './store/tracker';
 import { saveProgress } from './api/auth';
 import { getWishes } from './api/wishes';
+import { useSettingsStore } from './store/settings';
+import { scheduleDailyReminder } from './lib/reminders';
 import { IOSFrame } from './components/IOSFrame';
 import { DLTabBar } from './components/DLTabBar';
 import {
@@ -59,6 +61,15 @@ function AppContent() {
       .catch(() => {});
     // run once per app open
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Re-arm the daily practice reminder on app open (native only; no-op on web)
+  useEffect(() => {
+    const { reminderEnabled, reminderTime } = useSettingsStore.getState();
+    if (reminderEnabled) {
+      const [h, m] = reminderTime.split(':').map(Number);
+      scheduleDailyReminder(h, m);
+    }
   }, []);
 
   // Remember progress: persist the last meaningful screen to the profile

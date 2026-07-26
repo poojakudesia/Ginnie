@@ -9,6 +9,8 @@ import { useTrackerStore } from '../store/tracker';
 import { badgeById } from '../lib/badges';
 import { changePassword } from '../api/auth';
 import { Palette } from '../types';
+import { useSettingsStore } from '../store/settings';
+import { setReminder } from '../lib/reminders';
 
 const ENERGY_TIER = {
   thriving:  { label: 'Thriving',        emoji: '🌟' },
@@ -101,8 +103,28 @@ export const ProfileScreen: React.FC = () => {
   const { goto, setPalette, palette, wishes } = useAppStore();
   const { user, logout } = useAuthStore();
   const { earnedBadge, energyChecks, days } = useTrackerStore();
+  const { reminderEnabled, reminderTime, setReminderEnabled, setReminderTime } = useSettingsStore();
   const badge = badgeById(earnedBadge);
   const [showPw, setShowPw] = useState(false);
+
+  const toggleReminder = async () => {
+    const [h, m] = reminderTime.split(':').map(Number);
+    const now = await setReminder(!reminderEnabled, h, m);
+    setReminderEnabled(now);
+    if (!reminderEnabled && !now) {
+      toast.error('Enable notifications for Dream Life in your phone settings to get reminders.');
+    } else {
+      toast.success(now ? 'Daily reminder on ✦' : 'Reminder off');
+    }
+  };
+
+  const changeReminderTime = async (t: string) => {
+    setReminderTime(t);
+    if (reminderEnabled) {
+      const [h, m] = t.split(':').map(Number);
+      await setReminder(true, h, m);
+    }
+  };
 
   const name = user?.name || 'You';
   const email = user?.email || '';
@@ -175,6 +197,46 @@ export const ProfileScreen: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Daily reminder */}
+      <div style={{ padding: '22px 22px 0' }}>
+        <DLLabel style={{ marginBottom: 10, display: 'block' }}>Daily reminder</DLLabel>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+            <div>
+              <div style={{ fontFamily: 'var(--sans)', fontSize: 14.5, color: 'var(--ink)' }}>Remind me to practice</div>
+              <div style={{ fontFamily: 'var(--sans)', fontSize: 12.5, color: 'var(--muted)', marginTop: 2 }}>A gentle nudge, once a day</div>
+            </div>
+            {/* toggle */}
+            <button
+              onClick={toggleReminder}
+              aria-label="Toggle daily reminder"
+              style={{
+                width: 46, height: 28, borderRadius: 999, border: 'none', cursor: 'pointer', flexShrink: 0,
+                background: reminderEnabled ? 'var(--btn)' : 'var(--line-strong)',
+                position: 'relative', transition: 'background 0.2s',
+              }}
+            >
+              <span style={{
+                position: 'absolute', top: 3, left: reminderEnabled ? 21 : 3,
+                width: 22, height: 22, borderRadius: '50%', background: '#fff',
+                transition: 'left 0.2s', boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+              }} />
+            </button>
+          </div>
+          {reminderEnabled && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', borderTop: '1px solid var(--line)' }}>
+              <span style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)' }}>Time</span>
+              <input
+                type="time"
+                value={reminderTime}
+                onChange={(e) => changeReminderTime(e.target.value)}
+                style={{ fontFamily: 'var(--sans)', fontSize: 15, color: 'var(--ink)', background: 'var(--paper)', border: '1px solid var(--line)', borderRadius: 10, padding: '6px 10px' }}
+              />
+            </div>
+          )}
         </div>
       </div>
 

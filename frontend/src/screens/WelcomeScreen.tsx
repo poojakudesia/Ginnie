@@ -167,6 +167,20 @@ export const WelcomeScreen: React.FC = () => {
         >
           I already have an account
         </button>
+        <div
+          style={{
+            marginTop: 6,
+            fontFamily: 'var(--mono)',
+            fontSize: 11,
+            letterSpacing: '0.06em',
+            color: 'var(--muted)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+          }}
+        >
+          <span>🔒</span> Private by design · your practice stays yours
+        </div>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { DLScreen } from '../components/DLScreen';
 import { DLDisplay } from '../components/DLDisplay';
 import { DLLabel } from '../components/DLLabel';
 import { useAppStore } from '../store/app';
+import { useAuthStore } from '../store/auth';
 import { useTrackerStore } from '../store/tracker';
 import { practiceMeta, MOODS } from '../lib/practices';
 import { badgeForRate, badgeById } from '../lib/badges';
@@ -119,10 +120,24 @@ export const TrackerScreen: React.FC = () => {
     const done = countDone(key);
     const total = practiceIds.length;
     if (total > 0 && done === total) return { icon: '⭐', tint: '#E0A93C' };      // all → star
-    if (done > 0) return { icon: '◐', tint: '#9B7AB5' };                            // missed one → partial
-    if (isPast) return { icon: '🥀', tint: '#B85C5C' };                            // missed all → not consistent
-    return { icon: isToday ? '•' : '○', tint: 'var(--muted)' };                    // today / future-neutral
+    if (done > 0) return { icon: '◐', tint: '#9B7AB5' };                            // some → partial
+    // Missed days are shown gently — a soft dot, never shame.
+    if (isPast) return { icon: '○', tint: 'var(--line-strong)' };
+    return { icon: isToday ? '•' : '○', tint: 'var(--muted)' };
   };
+
+  // ── Warm, emotional "today" header ──────────────────────────────────────────
+  const name = (useAuthStore.getState().user?.name || '').split(' ')[0];
+  const hr = new Date().getHours();
+  const greeting = hr < 12 ? 'Good morning' : hr < 17 ? 'Good afternoon' : 'Good evening';
+  const anchorWish = wishes.find((w) => !w.is_manifested);
+  const todayDone = countDone(dayList[0]?.key ?? '');
+  const totalToday = practiceIds.length;
+  const todayLine =
+    totalToday === 0 ? 'Your practice is ready ✦'
+    : todayDone === 0 ? `${totalToday} gentle practice${totalToday > 1 ? 's' : ''} waiting for you`
+    : todayDone === totalToday ? 'All done today — beautiful work ✦'
+    : `${todayDone} of ${totalToday} today · one${todayDone === totalToday - 1 ? ' more' : ' step'} to go 🌟`;
 
   return (
     <DLScreen scroll pad={false}>
@@ -135,11 +150,27 @@ export const TrackerScreen: React.FC = () => {
       />
 
       <div style={{ padding: '18px 20px 10px' }}>
-        <DLLabel style={{ color: 'var(--btn)' }}>Your practice ✦</DLLabel>
-        <DLDisplay size="md" style={{ marginTop: 8, lineHeight: 1.05 }}>
-          Show up,<br />
-          <span style={{ fontStyle: 'italic' }}>day by day.</span>
-        </DLDisplay>
+        {/* Emotional anchor — greeting + their dream, before any checklist */}
+        <DLLabel style={{ color: 'var(--btn)' }}>
+          {greeting}{name ? `, ${name}` : ''} ✦
+        </DLLabel>
+        {anchorWish ? (
+          <>
+            <DLDisplay size="md" style={{ marginTop: 8, lineHeight: 1.08 }}>
+              You're <span style={{ fontStyle: 'italic' }}>becoming</span> —
+            </DLDisplay>
+            <p style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 17, color: 'var(--ink-2)', lineHeight: 1.4, margin: '8px 0 0' }}>
+              “{anchorWish.title}”
+            </p>
+          </>
+        ) : (
+          <DLDisplay size="md" style={{ marginTop: 8, lineHeight: 1.05 }}>
+            Show up,<br /><span style={{ fontStyle: 'italic' }}>day by day.</span>
+          </DLDisplay>
+        )}
+        <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--ink-2)', margin: '12px 0 0' }}>
+          {todayLine}
+        </p>
 
         {/* Badge / standing card */}
         <div
