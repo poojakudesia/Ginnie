@@ -26,6 +26,7 @@ from app.models.technique import UserTechnique
 from app.schemas.auth import (
     SignupRequest,
     LoginRequest,
+    ChangePasswordRequest,
     OAuthRequest,
     TokenResponse,
     UserProfile,
@@ -123,6 +124,26 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     update_streak(db, user)
     token = create_access_token(subject=user.id)
     return TokenResponse(access_token=token, user=_build_user_profile(user))
+
+
+@router.post("/change-password", status_code=status.HTTP_204_NO_CONTENT)
+def change_password(
+    payload: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Change the signed-in user's password (email/password accounts only)."""
+    if not current_user.hashed_password:
+        raise HTTPException(
+            status_code=400,
+            detail="This account signs in with Google/Facebook — no password to change.",
+        )
+    if not verify_password(payload.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Current password is incorrect.")
+
+    current_user.hashed_password = hash_password(payload.new_password)
+    db.add(current_user)
+    db.commit()
 
 
 # ── Google OAuth ──────────────────────────────────────────────────────────────

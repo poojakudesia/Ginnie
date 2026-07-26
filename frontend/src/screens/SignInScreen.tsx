@@ -1,7 +1,7 @@
 import React, { CSSProperties, useEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { signup, login, oauthGoogle, oauthFacebook } from '../api/auth';
-import { getWishes } from '../api/wishes';
+import { getWishes, createWish } from '../api/wishes';
 import { DLScreen } from '../components/DLScreen';
 import { useAppStore } from '../store/app';
 import { useAuthStore } from '../store/auth';
@@ -388,9 +388,32 @@ export const SignInScreen: React.FC = () => {
     // Restore chosen practices into the app so the tracker/plan reflect them
     if (u.techniques && u.techniques.length > 0) setTechniques(u.techniques);
 
+    let existing: any[] = [];
     try {
-      const existing = await getWishes();
-      if (existing && existing.length > 0) setWishes(existing);
+      existing = await getWishes();
+      if (existing && existing.length > 0) {
+        // Backend is the source of truth when it has wishes
+        setWishes(existing);
+      } else {
+        // Backend has none — recover any wishes saved only on this device by
+        // pushing them back up, so they persist across devices/reinstalls.
+        const local = useAppStore.getState().wishes;
+        if (local.length > 0) {
+          const synced = [];
+          for (const w of local) {
+            try {
+              synced.push(await createWish({
+                title: w.title, category: w.category, why: w.why,
+                progress_label: w.progress_label, timeline: w.timeline,
+              }));
+            } catch {
+              synced.push(w);
+            }
+          }
+          setWishes(synced);
+          existing = synced;
+        }
+      }
 
       // 1) Already practicing → always land on the Practice timeline
       if (u.techniques && u.techniques.length > 0) {

@@ -5,6 +5,7 @@ import { useAppStore, applyPalette } from './store/app';
 import { useAuthStore } from './store/auth';
 import { useTrackerStore } from './store/tracker';
 import { saveProgress } from './api/auth';
+import { getWishes } from './api/wishes';
 import { IOSFrame } from './components/IOSFrame';
 import { DLTabBar } from './components/DLTabBar';
 import {
@@ -46,6 +47,19 @@ function AppContent() {
   const energyPromptedRef = useRef(false);
 
   useEffect(() => { applyPalette(palette); }, [palette]);
+
+  // Durability: when the app opens for a logged-in user, make sure wishes are
+  // loaded from the backend (the source of truth) even without re-logging in.
+  useEffect(() => {
+    if (!token) return;
+    getWishes()
+      .then((server) => {
+        if (server && server.length > 0) useAppStore.getState().setWishes(server);
+      })
+      .catch(() => {});
+    // run once per app open
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Remember progress: persist the last meaningful screen to the profile
   useEffect(() => {

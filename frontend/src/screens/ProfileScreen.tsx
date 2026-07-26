@@ -1,386 +1,217 @@
-import React from 'react';
+import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { DLScreen } from '../components/DLScreen';
-import { DLTopBar } from '../components/DLTopBar';
 import { DLLabel } from '../components/DLLabel';
-import { DLCard } from '../components/DLCard';
+import { DLDisplay } from '../components/DLDisplay';
 import { useAppStore } from '../store/app';
 import { useAuthStore } from '../store/auth';
 import { useTrackerStore } from '../store/tracker';
 import { badgeById } from '../lib/badges';
+import { changePassword } from '../api/auth';
+import { Palette } from '../types';
 
-const TROPHIES = [
-  { id: 't1', name: 'First Wish', icon: '⭐', tier: 'bronze', earned: true },
-  { id: 't2', name: '7-Day Streak', icon: '🔥', tier: 'silver', earned: true },
-  { id: 't3', name: 'Visualizer', icon: '◐', tier: 'bronze', earned: true },
-  { id: 't4', name: 'Manifested!', icon: '✦', tier: 'gold', earned: false },
-  { id: 't5', name: 'Scripted', icon: '✍', tier: 'bronze', earned: false },
-  { id: 't6', name: '30-Day Streak', icon: '🌙', tier: 'gold', earned: false },
-  { id: 't7', name: '369 Master', icon: '③', tier: 'silver', earned: false },
-  { id: 't8', name: 'Legend', icon: '👑', tier: 'legend', earned: false },
-  { id: 't9', name: 'Vision Movie', icon: '▸', tier: 'bronze', earned: true },
-];
-
-const TIER_COLORS: Record<string, string> = {
-  bronze: '#CD7F32',
-  silver: '#A8A9AD',
-  gold: '#FFD700',
-  legend: '#9B59B6',
-};
-
-const SETTINGS = [
-  { label: "Edit Aura's voice", icon: '✦' },
-  { label: 'Notifications', icon: '🔔' },
-  { label: 'Privacy', icon: '🔒' },
-  { label: 'Color palette', icon: '🎨' },
-  { label: 'Sign out', icon: '→', danger: true },
-];
-
-const ENERGY_TIER_LABEL: Record<string, { label: string; emoji: string }> = {
+const ENERGY_TIER = {
   thriving:  { label: 'Thriving',        emoji: '🌟' },
   flow:      { label: 'In flow',         emoji: '✨' },
-  building:  { label: 'Building rhythm',  emoji: '🌱' },
+  building:  { label: 'Building rhythm', emoji: '🌱' },
   awakening: { label: 'Awakening',       emoji: '🌙' },
-};
+} as const;
 
-export const ProfileScreen: React.FC = () => {
-  const { goto, setPalette, palette, wishes } = useAppStore();
-  const { user, logout } = useAuthStore();
-  const earnedBadge = useTrackerStore((s) => s.earnedBadge);
-  const energyChecks = useTrackerStore((s) => s.energyChecks);
-  const badge = badgeById(earnedBadge);
+const THEMES: { id: Palette; label: string; swatch: string }[] = [
+  { id: 'petal', label: 'Petal', swatch: '#7C3763' },
+  { id: 'sage',  label: 'Sage',  swatch: '#DC8551' },
+  { id: 'sand',  label: 'Sand',  swatch: '#A0845C' },
+  { id: 'dusk',  label: 'Dusk',  swatch: '#8B5CF6' },
+];
 
-  const level = Math.floor((user?.xp || 240) / 100) + 1;
-  const xpProgress = ((user?.xp || 240) % 100);
+// ── Change-password sheet ────────────────────────────────────────────────────
+const strong = (v: string) =>
+  v.length >= 8 && /[A-Z]/.test(v) && /\d/.test(v) && /[^A-Za-z0-9]/.test(v);
 
-  const rankGradients = [
-    'linear-gradient(135deg, #CD7F32, #A0522D)',
-    'linear-gradient(135deg, #A8A9AD, #708090)',
-    'linear-gradient(135deg, #FFD700, #FFA500)',
-    'linear-gradient(135deg, #9B59B6, #6C3483)',
-  ];
-  const rankGrad = rankGradients[Math.min(level - 1, 3)];
-  const famMap = { explorer: 'Explorer', catalyst: 'Catalyst', master: 'Master' };
+const ChangePasswordSheet: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [current, setCurrent] = useState('');
+  const [next, setNext] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSetting = (label: string) => {
-    if (label === 'Sign out') {
-      logout();
-      goto('welcome');
-    } else if (label === 'Color palette') {
-      const palettes = ['petal', 'sage', 'sand', 'dusk'] as const;
-      const idx = palettes.indexOf(palette as typeof palettes[number]);
-      setPalette(palettes[(idx + 1) % palettes.length]);
+  const submit = async () => {
+    setError('');
+    if (!strong(next)) { setError('New password needs 8+ chars, an uppercase, a number, and a symbol.'); return; }
+    if (next !== confirm) { setError('New passwords don’t match.'); return; }
+    setBusy(true);
+    try {
+      await changePassword(current, next);
+      toast.success('Password updated ✦');
+      onClose();
+    } catch (e: any) {
+      setError(e?.response?.data?.detail || 'Could not change password.');
+    } finally {
+      setBusy(false);
     }
   };
 
+  const field = (label: string, val: string, set: (v: string) => void) => (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.06em', color: 'var(--muted)', marginBottom: 6, textTransform: 'uppercase' }}>{label}</div>
+      <input
+        type="password"
+        value={val}
+        onChange={(e) => set(e.target.value)}
+        placeholder="••••••••"
+        style={{
+          width: '100%', boxSizing: 'border-box', background: 'var(--card)',
+          border: '1.5px solid var(--line)', borderRadius: 12, padding: '13px 14px',
+          fontFamily: 'var(--sans)', fontSize: 15, color: 'var(--ink)', outline: 'none',
+        }}
+      />
+    </div>
+  );
+
   return (
-    <DLScreen scroll={false} pad={false} style={{ display: 'flex', flexDirection: 'column' }}>
-      <DLTopBar title="You ◯" />
-
-      <div style={{ flex: 1, overflowY: 'auto', paddingBottom: 32 }}>
-        {/* Rank banner */}
-        <div
+    <div onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'flex-end' }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: '100%', background: 'var(--paper)', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: '22px 22px 30px', boxShadow: '0 -10px 40px rgba(0,0,0,0.25)', animation: 'dlFadeUp 0.3s ease' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+          <DLDisplay size="sm">Change password</DLDisplay>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: 22, color: 'var(--muted)', cursor: 'pointer' }}>×</button>
+        </div>
+        {field('Current password', current, setCurrent)}
+        {field('New password', next, setNext)}
+        {field('Confirm new password', confirm, setConfirm)}
+        {error && <p style={{ fontFamily: 'var(--mono)', fontSize: 11, color: '#E05252', margin: '2px 0 10px' }}>{error}</p>}
+        <button
+          onClick={submit}
+          disabled={busy || !current || !next || !confirm}
           style={{
-            background: rankGrad,
-            padding: '24px 24px 20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 16,
+            width: '100%', marginTop: 6, padding: '15px', borderRadius: 999, border: 'none',
+            background: 'linear-gradient(135deg, var(--btn), var(--btn-deep))', color: 'var(--btn-text)',
+            fontFamily: 'var(--sans)', fontSize: 15, fontWeight: 600,
+            cursor: busy ? 'not-allowed' : 'pointer', opacity: busy || !current || !next || !confirm ? 0.6 : 1,
           }}
         >
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 999,
-              background: badge ? badge.gradient : 'rgba(255,255,255,0.2)',
-              border: '3px solid rgba(255,255,255,0.5)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: badge ? 30 : 28,
-              flexShrink: 0,
-              boxShadow: badge ? '0 4px 16px rgba(0,0,0,0.25)' : 'none',
-            }}
-          >
-            {badge ? badge.emoji : (user?.name?.[0]?.toUpperCase() || '✦')}
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: 'var(--sans)', fontWeight: 600, fontSize: 18, color: '#fff' }}>
-              {user?.name || 'Manifestor'}
-            </div>
-            <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'rgba(255,255,255,0.75)', letterSpacing: '0.1em', marginTop: 2 }}>
-              {badge ? badge.name.toUpperCase() : `${famMap[user?.familiarity || 'explorer'].toUpperCase()} · LEVEL ${level}`}
-            </div>
-          </div>
-        </div>
+          {busy ? 'Updating…' : 'Update password'}
+        </button>
+      </div>
+    </div>
+  );
+};
 
-        {/* XP bar */}
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-            <DLLabel>XP Progress</DLLabel>
-            <DLLabel style={{ color: 'var(--btn)' }}>{user?.xp || 240} / {level * 100} XP</DLLabel>
-          </div>
-          <div style={{ height: 6, borderRadius: 999, background: 'var(--line)', overflow: 'hidden' }}>
-            <div
-              style={{
-                width: `${xpProgress}%`,
-                height: '100%',
-                borderRadius: 999,
-                background: 'linear-gradient(90deg, var(--btn), var(--btn-deep))',
-              }}
-            />
-          </div>
-        </div>
+// ── Profile ──────────────────────────────────────────────────────────────────
+export const ProfileScreen: React.FC = () => {
+  const { goto, setPalette, palette, wishes } = useAppStore();
+  const { user, logout } = useAuthStore();
+  const { earnedBadge, energyChecks, days } = useTrackerStore();
+  const badge = badgeById(earnedBadge);
+  const [showPw, setShowPw] = useState(false);
 
-        {/* 4-stat grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 1,
-            background: 'var(--line)',
-            margin: '16px 20px',
-            borderRadius: 18,
-            overflow: 'hidden',
-            border: '1px solid var(--line)',
-          }}
-        >
-          {[
-            { label: 'Streak', value: `${user?.streak_count || 7}d 🔥` },
-            { label: 'Total XP', value: `${user?.xp || 240} ✦` },
-            { label: 'Affirmations', value: '42' },
-            { label: 'Skills', value: `${user?.techniques?.length || 3}` },
-          ].map((stat) => (
-            <div key={stat.label} style={{ background: 'var(--card)', padding: '16px 18px' }}>
-              <div
-                style={{
-                  fontFamily: 'var(--mono)',
-                  fontSize: 10,
-                  color: 'var(--muted)',
-                  letterSpacing: '0.08em',
-                  marginBottom: 4,
-                }}
-              >
-                {stat.label.toUpperCase()}
-              </div>
-              <div style={{ fontFamily: 'var(--sans)', fontWeight: 600, fontSize: 20, color: 'var(--ink)' }}>
-                {stat.value}
-              </div>
-            </div>
-          ))}
-        </div>
+  const name = user?.name || 'You';
+  const email = user?.email || '';
+  const activeWishes = wishes.filter((w) => !w.is_manifested).length;
+  const practicesDone = Object.values(days).reduce(
+    (n, d) => n + Object.values(d.checks || {}).filter((c) => c.done).length, 0,
+  );
 
-        {/* Active quests */}
-        {wishes.length > 0 && (
-          <div style={{ padding: '0 20px', marginBottom: 20 }}>
-            <DLLabel style={{ marginBottom: 10, display: 'block' }}>Active quests</DLLabel>
-            <DLCard tone="paper">
-              {wishes.map((wish, i) => (
-                <div key={wish.id} style={{ marginBottom: i < wishes.length - 1 ? 14 : 0 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                    <span
-                      style={{
-                        fontFamily: 'var(--sans)',
-                        fontSize: 13,
-                        color: 'var(--ink)',
-                        fontStyle: 'italic',
-                      }}
-                    >
-                      {wish.title.length > 40 ? wish.title.slice(0, 40) + '…' : wish.title}
-                    </span>
-                    <span style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)' }}>
-                      {wish.pct_complete}%
-                    </span>
-                  </div>
-                  <div style={{ height: 4, borderRadius: 999, background: 'var(--line)', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        width: `${wish.pct_complete}%`,
-                        height: '100%',
-                        borderRadius: 999,
-                        background: 'linear-gradient(90deg, var(--btn), var(--btn-deep))',
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </DLCard>
+  const signOut = () => { logout(); goto('welcome'); };
+
+  const STATS = [
+    { value: user?.streak_count ?? 0, label: 'Day streak' },
+    { value: practicesDone, label: 'Practices' },
+    { value: activeWishes, label: 'Wishes' },
+  ];
+
+  return (
+    <DLScreen scroll pad={false}>
+      <div style={{ padding: '22px 22px 8px' }}>
+        <DLLabel style={{ color: 'var(--btn)' }}>Your account ◯</DLLabel>
+      </div>
+
+      {/* Identity card */}
+      <div style={{ padding: '4px 22px 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 20, padding: 18 }}>
+          <div style={{
+            width: 64, height: 64, borderRadius: 18, flexShrink: 0,
+            background: badge ? badge.gradient : 'linear-gradient(135deg, var(--btn), var(--btn-deep))',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: badge ? 32 : 26, color: '#fff',
+            fontFamily: 'var(--serif)', fontStyle: 'italic',
+          }}>
+            {badge ? badge.emoji : name[0]?.toUpperCase()}
           </div>
-        )}
-
-        {/* Year heatmap */}
-        <div style={{ padding: '0 20px', marginBottom: 20 }}>
-          <DLLabel style={{ marginBottom: 10, display: 'block' }}>Year of manifestation</DLLabel>
-          <DLCard tone="paper" pad={14}>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-              {Array.from({ length: 52 }).map((_, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: 10,
-                    height: 10,
-                    borderRadius: 3,
-                    background:
-                      i < 10
-                        ? 'var(--btn)'
-                        : i < 20
-                        ? 'rgba(124,55,99,0.4)'
-                        : 'var(--line)',
-                  }}
-                />
-              ))}
-            </div>
-          </DLCard>
-        </div>
-
-        {/* Trophy grid */}
-        <div style={{ padding: '0 20px', marginBottom: 20 }}>
-          <DLLabel style={{ marginBottom: 10, display: 'block' }}>Trophy room</DLLabel>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-            {TROPHIES.map((trophy) => (
-              <div
-                key={trophy.id}
-                style={{
-                  borderRadius: 16,
-                  padding: '14px 10px',
-                  background: trophy.earned ? 'var(--card)' : 'transparent',
-                  border: trophy.earned
-                    ? `2px solid ${TIER_COLORS[trophy.tier]}33`
-                    : '1.5px dashed var(--line)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 6,
-                  opacity: trophy.earned ? 1 : 0.4,
-                }}
-              >
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 12,
-                    background: trophy.earned
-                      ? `linear-gradient(135deg, ${TIER_COLORS[trophy.tier]}44, ${TIER_COLORS[trophy.tier]}22)`
-                      : 'var(--line)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: 20,
-                  }}
-                >
-                  {trophy.icon}
-                </div>
-                <span
-                  style={{
-                    fontFamily: 'var(--sans)',
-                    fontSize: 10,
-                    color: 'var(--ink)',
-                    textAlign: 'center',
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {trophy.name}
-                </span>
-                <span
-                  style={{
-                    fontFamily: 'var(--mono)',
-                    fontSize: 8,
-                    color: TIER_COLORS[trophy.tier],
-                    letterSpacing: '0.06em',
-                  }}
-                >
-                  {trophy.tier.toUpperCase()}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Weekly Energy check-ins */}
-        <div style={{ padding: '0 20px 22px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-            <DLLabel>Energy check-ins</DLLabel>
-            <button
-              onClick={() => goto('energy-check')}
-              style={{
-                background: 'var(--accent-soft)', border: 'none', borderRadius: 999,
-                padding: '6px 12px', cursor: 'pointer',
-                fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.06em',
-                color: 'var(--btn)', textTransform: 'uppercase',
-              }}
-            >
-              ⚡ Check in
-            </button>
-          </div>
-          <DLCard tone="paper" pad={0} style={{ overflow: 'hidden' }}>
-            {energyChecks.length === 0 ? (
-              <div style={{ padding: '16px', fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', textAlign: 'center' }}>
-                Your first weekly check-in arrives Saturday ✦
-              </div>
-            ) : (
-              energyChecks.slice(0, 6).map((c, i) => {
-                const t = ENERGY_TIER_LABEL[c.tier] || { label: c.tier, emoji: '✦' };
-                return (
-                  <div
-                    key={`${c.date}-${i}`}
-                    style={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                      padding: '12px 16px',
-                      borderTop: i === 0 ? 'none' : '1px solid var(--line)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <span style={{ fontSize: 18 }}>{t.emoji}</span>
-                      <span style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--ink)' }}>{t.label}</span>
-                    </div>
-                    <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--muted)' }}>{c.date}</span>
-                  </div>
-                );
-              })
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontFamily: 'var(--serif)', fontSize: 22, color: 'var(--ink)', lineHeight: 1.1 }}>{name}</div>
+            <div style={{ fontFamily: 'var(--sans)', fontSize: 13.5, color: 'var(--muted)', marginTop: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</div>
+            {badge && (
+              <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.06em', color: 'var(--btn)', marginTop: 5, textTransform: 'uppercase' }}>{badge.name}</div>
             )}
-          </DLCard>
-        </div>
-
-        {/* Settings */}
-        <div style={{ padding: '0 20px' }}>
-          <DLLabel style={{ marginBottom: 10, display: 'block' }}>Settings</DLLabel>
-          <DLCard tone="paper" pad={0} style={{ overflow: 'hidden' }}>
-            {SETTINGS.map((s, i) => (
-              <button
-                key={s.label}
-                onClick={() => handleSetting(s.label)}
-                style={{
-                  width: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 14,
-                  padding: '14px 18px',
-                  borderBottom: i < SETTINGS.length - 1 ? '1px solid var(--line)' : 'none',
-                  background: 'transparent',
-                  borderTop: 'none',
-                  borderLeft: 'none',
-                  borderRight: 'none',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
-              >
-                <span style={{ fontSize: 18, width: 24, textAlign: 'center' }}>{s.icon}</span>
-                <span
-                  style={{
-                    fontFamily: 'var(--sans)',
-                    fontSize: 14,
-                    color: (s as { danger?: boolean }).danger ? '#E53E3E' : 'var(--ink)',
-                    flex: 1,
-                  }}
-                >
-                  {s.label}
-                </span>
-                <span style={{ color: 'var(--muted)', fontSize: 14 }}>→</span>
-              </button>
-            ))}
-          </DLCard>
+          </div>
         </div>
       </div>
+
+      {/* Quick stats */}
+      <div style={{ padding: '14px 22px 0', display: 'flex', gap: 10 }}>
+        {STATS.map((s) => (
+          <div key={s.label} style={{ flex: 1, background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, padding: '14px 8px', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--serif)', fontSize: 26, color: 'var(--ink)' }}>{s.value}</div>
+            <div style={{ fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '0.05em', color: 'var(--muted)', marginTop: 4, textTransform: 'uppercase' }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Energy check-ins */}
+      <div style={{ padding: '22px 22px 0' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <DLLabel>How you've felt</DLLabel>
+          <button onClick={() => goto('energy-check')} style={{ background: 'var(--accent-soft)', border: 'none', borderRadius: 999, padding: '6px 12px', cursor: 'pointer', fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.05em', color: 'var(--btn)', textTransform: 'uppercase' }}>⚡ Check in</button>
+        </div>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, overflow: 'hidden' }}>
+          {energyChecks.length === 0 ? (
+            <div style={{ padding: 16, fontFamily: 'var(--sans)', fontSize: 13, color: 'var(--muted)', textAlign: 'center' }}>Your check-in arrives Saturday ✦</div>
+          ) : energyChecks.slice(0, 5).map((c, i) => {
+            const t = ENERGY_TIER[c.tier as keyof typeof ENERGY_TIER] || { label: c.tier, emoji: '✦' };
+            return (
+              <div key={`${c.date}-${i}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', borderTop: i === 0 ? 'none' : '1px solid var(--line)' }}>
+                <span style={{ display: 'flex', gap: 10, alignItems: 'center', fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--ink)' }}><span style={{ fontSize: 18 }}>{t.emoji}</span>{t.label}</span>
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, color: 'var(--muted)' }}>{c.date}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Appearance */}
+      <div style={{ padding: '22px 22px 0' }}>
+        <DLLabel style={{ marginBottom: 10, display: 'block' }}>Appearance</DLLabel>
+        <div style={{ display: 'flex', gap: 10 }}>
+          {THEMES.map((t) => {
+            const on = palette === t.id;
+            return (
+              <button key={t.id} onClick={() => setPalette(t.id)} style={{ flex: 1, cursor: 'pointer', background: 'var(--card)', border: `1.5px solid ${on ? 'var(--btn)' : 'var(--line)'}`, borderRadius: 14, padding: '12px 6px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 22, height: 22, borderRadius: '50%', background: t.swatch, boxShadow: on ? '0 0 0 3px var(--accent-soft)' : 'none' }} />
+                <span style={{ fontFamily: 'var(--mono)', fontSize: 9.5, letterSpacing: '0.04em', color: on ? 'var(--btn)' : 'var(--muted)', textTransform: 'uppercase' }}>{t.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Account actions */}
+      <div style={{ padding: '22px 22px 40px' }}>
+        <DLLabel style={{ marginBottom: 10, display: 'block' }}>Account</DLLabel>
+        <div style={{ background: 'var(--card)', border: '1px solid var(--line)', borderRadius: 16, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px' }}>
+            <span style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)' }}>Email</span>
+            <span style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--ink)', maxWidth: '62%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{email}</span>
+          </div>
+          <button onClick={() => setShowPw(true)} style={{ width: '100%', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', background: 'none', border: 'none', borderTop: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--ink)' }}>
+            Change password <span style={{ color: 'var(--muted)' }}>›</span>
+          </button>
+          <button onClick={signOut} style={{ width: '100%', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', background: 'none', border: 'none', borderTop: '1px solid var(--line)', cursor: 'pointer', fontFamily: 'var(--sans)', fontSize: 14, color: '#C0453B' }}>
+            Sign out <span>→</span>
+          </button>
+        </div>
+      </div>
+
+      {showPw && <ChangePasswordSheet onClose={() => setShowPw(false)} />}
     </DLScreen>
   );
 };

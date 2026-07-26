@@ -69,6 +69,14 @@ export const updateMe = async (payload: Partial<User>): Promise<User> => {
   return data;
 };
 
+/** Change the signed-in user's password. Throws on failure (wrong current pw, etc). */
+export const changePassword = async (
+  current_password: string,
+  new_password: string,
+): Promise<void> => {
+  await client.post('/auth/change-password', { current_password, new_password });
+};
+
 /** Fire-and-forget: remember the last screen so the user resumes here. */
 export const saveProgress = (last_screen: string): void => {
   updateMe({ last_screen }).catch(() => {});
