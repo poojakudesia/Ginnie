@@ -20,36 +20,40 @@ const humanTimeline = (t: string): string =>
 
 /**
  * Heuristic gibberish / nonsense detector for the goal field.
- * Returns true when the text doesn't read like a real goal.
+ * Deliberately lenient — it should only catch clearly random input
+ * (keyboard mashing, a single nonsense token), never real phrases.
  */
 export const looksLikeGibberish = (raw: string): boolean => {
   const text = raw.trim().toLowerCase();
-  if (text.length < 6) return true;
+  if (text.length < 4) return true;
 
+  const words = text.split(/\s+/).filter(Boolean);
+
+  // A "real" word: 2+ letters and contains a vowel.
+  const realWords = words.filter((w) => {
+    const letters = w.replace(/[^a-z]/g, '');
+    return letters.length >= 2 && /[aeiou]/.test(letters);
+  });
+
+  // Two or more real words = a genuine phrase. Accept it.
+  if (realWords.length >= 2) return false;
+
+  // Obvious keyboard mashing anywhere.
+  if (/(asdf|sdfg|dfgh|qwer|wert|erty|zxcv|xcvb|hjkl|uiop|poiu)/.test(text)) return true;
+  // Same character hammered 5+ times ("aaaaa").
+  if (/(.)\1{4,}/.test(text)) return true;
+
+  // Single-token input: judge that token on its own merits.
   const letters = text.replace(/[^a-z]/g, '');
-  if (letters.length < 4) return true;
-
-  // Vowel ratio of real English words sits roughly 25–55%.
+  if (letters.length < 3) return true;
   const vowels = (letters.match(/[aeiou]/g) || []).length;
   const vowelRatio = vowels / letters.length;
-  if (vowelRatio < 0.18 || vowelRatio > 0.85) return true;
+  if (vowelRatio < 0.15 || vowelRatio > 0.9) return true;
+  // A very long consonant run inside one word is nonsense-like.
+  if (/[bcdfghjklmnpqrstvwxyz]{6,}/.test(letters)) return true;
 
-  // Long consonant runs ("hjklmn") rarely occur in real words.
-  if (/[bcdfghjklmnpqrstvwxyz]{5,}/.test(letters)) return true;
-
-  // Obvious keyboard mashing.
-  if (/(asdf|sdfg|dfgh|qwer|wert|erty|zxcv|xcvb|hjkl|uiop|poiu)/.test(text)) return true;
-
-  // Same character hammered 4+ times ("aaaa", "!!!!").
-  if (/(.)\1{3,}/.test(text)) return true;
-
-  // Need at least two genuine word-like tokens (a vowel + 2+ letters).
-  const words = text
-    .split(/\s+/)
-    .filter((w) => /[aeiou]/.test(w) && w.replace(/[^a-z]/g, '').length >= 2);
-  if (words.length < 2) return true;
-
-  return false;
+  // One real word (e.g. "wealth") is fine; zero means gibberish.
+  return realWords.length === 0;
 };
 
 const kgFromUnit = (amount: number, unit: string): number =>
@@ -75,7 +79,7 @@ export const analyzeWish = (
 
   // ── Weight-loss feasibility ──────────────────────────────────────────────
   const lose = g.match(
-    /(lose|drop|shed|lost|cut)\D{0,14}(\d{1,3})\s?(kgs?|kilos?|kilograms?|pounds?|lbs?|lb)/,
+    /(lose|losing|loose|loosing|los|drop|shed|shedding|lost|cut|reduce)\D{0,14}(\d{1,3})\s?(kgs?|kilos?|kilograms?|pounds?|lbs?|lb)/,
   );
   if (lose) {
     const kg = kgFromUnit(parseInt(lose[2], 10), lose[3]);
