@@ -46,33 +46,56 @@ export const APP_KIND: Record<string, PracticeKind> = {
   meditate: 'media',
 };
 
-// YouTube explainers per app technique id (Lesson 1 of 3 deep-dive links)
+// YouTube explainers per app technique id (Lesson deep-dive links).
+// We link to YouTube searches SORTED BY VIEW COUNT rather than hard-coded video
+// IDs. This guarantees the links always open (no "video unavailable") and always
+// surface the most-watched, current videos for each technique.
+const YT_TOP = (query: string) =>
+  `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=CAMSAhAB`;
+
 export const APP_VIDEOS: Record<string, { title: string; url: string }[]> = {
   viz: [
-    { title: 'Visualization that actually works', url: 'https://www.youtube.com/watch?v=W8O-JVQzz5s' },
-    { title: 'How to visualize your goals', url: 'https://www.youtube.com/watch?v=6Qm9wYFjZP0' },
+    { title: 'How to visualize your goals', url: YT_TOP('how to visualize your goals manifestation') },
+    { title: 'Creative visualization technique', url: YT_TOP('creative visualization technique') },
+    { title: 'Guided visualization to manifest', url: YT_TOP('guided visualization manifestation') },
+    { title: 'Visualization that actually works', url: YT_TOP('visualization meditation that works') },
   ],
   affirm: [
-    { title: 'How to write affirmations that stick', url: 'https://www.youtube.com/watch?v=LH_A9pR7t9g' },
-    { title: 'Mirror work, explained', url: 'https://www.youtube.com/watch?v=6vHcHOB2Q3Y' },
+    { title: 'Powerful positive affirmations', url: YT_TOP('positive affirmations') },
+    { title: 'Morning affirmations', url: YT_TOP('morning affirmations') },
+    { title: 'How to write affirmations that work', url: YT_TOP('how to write affirmations that work') },
+    { title: 'Mirror work, explained', url: YT_TOP('mirror work affirmations louise hay') },
   ],
   movie: [
-    { title: 'Make a vision movie', url: 'https://www.youtube.com/watch?v=lZOB1pZDgLk' },
+    { title: 'How to make a vision board', url: YT_TOP('how to make a vision board that works') },
+    { title: 'Digital vision board / vision movie', url: YT_TOP('digital vision board vision movie') },
+    { title: 'Vision board manifestation results', url: YT_TOP('vision board manifestation success story') },
   ],
   script: [
-    { title: 'Scripting / future journaling', url: 'https://www.youtube.com/watch?v=q9nQe6M8v3k' },
+    { title: 'Scripting manifestation method', url: YT_TOP('scripting manifestation method') },
+    { title: 'How to script your dream life', url: YT_TOP('how to script manifest dream life') },
+    { title: 'Future journaling, explained', url: YT_TOP('future journaling manifestation') },
   ],
   gratitude: [
-    { title: 'The science of gratitude journaling', url: 'https://www.youtube.com/watch?v=WPPPFqsECz0' },
+    { title: 'Gratitude journaling, how-to', url: YT_TOP('how to gratitude journal') },
+    { title: 'The science of gratitude', url: YT_TOP('science of gratitude') },
+    { title: 'Gratitude to manifest faster', url: YT_TOP('gratitude manifestation practice') },
   ],
   '369': [
-    { title: 'The 3-6-9 method, step by step', url: 'https://www.youtube.com/watch?v=Q0eK5o9Ol2E' },
+    { title: 'The 3-6-9 method, step by step', url: YT_TOP('369 method manifestation how to') },
+    { title: '369 method that worked', url: YT_TOP('369 method manifestation results') },
+    { title: '369 manifestation, explained', url: YT_TOP('369 manifesting technique explained') },
   ],
   '555': [
-    { title: 'The 55×5 method explained', url: 'https://www.youtube.com/watch?v=8m6dQ1U3q1A' },
+    { title: 'The 55×5 method explained', url: YT_TOP('55x5 manifestation method how to') },
+    { title: '55×5 affirmation method', url: YT_TOP('55x5 affirmation method') },
+    { title: '55×5 that worked', url: YT_TOP('55x5 method manifestation results') },
   ],
   meditate: [
-    { title: 'Guided manifestation meditation', url: 'https://www.youtube.com/watch?v=1ZYbU82GVz4' },
+    { title: 'Guided manifestation meditation', url: YT_TOP('guided manifestation meditation') },
+    { title: 'Meditation for manifesting', url: YT_TOP('meditation for manifesting') },
+    { title: 'Law of attraction meditation', url: YT_TOP('law of attraction meditation') },
+    { title: 'Sleep manifestation meditation', url: YT_TOP('sleep manifestation meditation') },
   ],
 };
 
