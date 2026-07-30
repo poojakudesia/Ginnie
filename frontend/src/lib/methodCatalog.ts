@@ -31,7 +31,7 @@ export const methodById = (id: string): Method | undefined =>
   METHODS.find((m) => m.id === id);
 
 // How a practice is captured in a lesson, keyed by the app technique id:
-//   'text'  → user writes in-app, Aura refines it
+//   'text'  → user writes in-app, Ginnie refines it
 //   'media' → user uploads a file (image / audio / video)
 export type PracticeKind = 'text' | 'media';
 

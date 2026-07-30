@@ -9,7 +9,7 @@ from app.routes import auth, wishes, journal, aura
 
 app = FastAPI(
     title="Dream Life API",
-    description="Manifestation meets modern tech. Powered by Aura (Claude).",
+    description="Manifestation meets modern tech. Powered by Ginnie (Claude).",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",

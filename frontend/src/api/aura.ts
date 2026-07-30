@@ -22,7 +22,7 @@ export async function* streamAuraChat(
   });
 
   if (!response.ok) {
-    throw new Error(`Aura error: ${response.statusText}`);
+    throw new Error(`Ginnie error: ${response.statusText}`);
   }
 
   const reader = response.body?.getReader();

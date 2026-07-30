@@ -84,7 +84,7 @@ export const ProfileSetupScreen: React.FC = () => {
           <span style={{ fontStyle: 'italic' }}>on your path!</span>
         </DLDisplay>
         <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)', marginTop: 8, lineHeight: 1.5 }}>
-          This helps Aura personalize your experience.
+          This helps Ginnie personalize your experience.
         </p>
       </div>
 

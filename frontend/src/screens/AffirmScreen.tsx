@@ -135,11 +135,11 @@ export const AffirmScreen: React.FC = () => {
             </div>
           </DLCard>
 
-          {/* Aura suggestions */}
+          {/* Ginnie suggestions */}
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
               <DLAura size={28} glow={false} />
-              <DLLabel style={{ color: 'var(--btn)' }}>Aura suggests</DLLabel>
+              <DLLabel style={{ color: 'var(--btn)' }}>Ginnie suggests</DLLabel>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {SUGGESTIONS.map((s, i) => (

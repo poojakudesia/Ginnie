@@ -42,7 +42,7 @@ export interface RefinedAffirmation {
 }
 
 /**
- * Ask Aura to refine an affirmation (present-tense, positive, personal,
+ * Ask Ginnie to refine an affirmation (present-tense, positive, personal,
  * believable, concise, emotive). Throws on failure so the caller can show
  * an error; the backend itself already falls back to a rule-based refine.
  */

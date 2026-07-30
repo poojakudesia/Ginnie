@@ -99,7 +99,7 @@ export const VizScreen: React.FC = () => {
             close your eyes. be there already.
           </DLDisplay>
 
-          {/* Aura whispers card */}
+          {/* Ginnie whispers card */}
           <div
             style={{
               background: 'rgba(255,255,255,0.55)',
@@ -112,7 +112,7 @@ export const VizScreen: React.FC = () => {
             }}
           >
             <DLLabel style={{ color: 'var(--btn)', marginBottom: 8, display: 'block' }}>
-              Aura whispers ✦
+              Ginnie whispers ✦
             </DLLabel>
             <p
               style={{
@@ -252,7 +252,7 @@ export const VizScreen: React.FC = () => {
             padding: '0 24px',
           }}
         >
-          {/* Aura with breathing rings */}
+          {/* Ginnie with breathing rings */}
           <div
             style={{
               position: 'relative',

@@ -99,7 +99,7 @@ export const WelcomeScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Aura avatar */}
+      {/* Ginnie avatar */}
       <div
         style={{
           opacity: visible ? 1 : 0,

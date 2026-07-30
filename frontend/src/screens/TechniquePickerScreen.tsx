@@ -130,7 +130,7 @@ export const TechniquePickerScreen: React.FC = () => {
           <span style={{ fontStyle: 'italic' }}>chosen for you.</span>
         </DLDisplay>
         <p style={{ fontFamily: 'var(--sans)', fontSize: 14, color: 'var(--muted)', marginBottom: 24, lineHeight: 1.55 }}>
-          Aura reads your energy to match you with the perfect manifestation
+          Ginnie reads your energy to match you with the perfect manifestation
           technique. No wasted effort, just faster alignments.
         </p>
 

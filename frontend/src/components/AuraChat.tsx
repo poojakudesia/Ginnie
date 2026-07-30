@@ -12,7 +12,7 @@ export const AuraChat: React.FC<AuraChatProps> = ({ onClose, initialMessage }) =
   const [messages, setMessages] = useState<AuraMessage[]>([
     {
       role: 'assistant',
-      content: initialMessage || "Hi love ✦ I'm Aura, your personal manifestation guide. What's on your heart today?",
+      content: initialMessage || "Hi love ✦ I'm Ginnie, your personal manifestation guide. What's on your heart today?",
     },
   ]);
   const [input, setInput] = useState('');
@@ -85,7 +85,7 @@ export const AuraChat: React.FC<AuraChatProps> = ({ onClose, initialMessage }) =
         <DLAura size={40} glow />
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: 'var(--sans)', fontWeight: 500, fontSize: 15, color: 'var(--ink)' }}>
-            Aura ✦
+            Ginnie ✦
           </div>
           <div style={{ fontFamily: 'var(--mono)', fontSize: 10, color: 'var(--muted)', letterSpacing: '0.06em' }}>
             YOUR GINNIE
@@ -179,7 +179,7 @@ export const AuraChat: React.FC<AuraChatProps> = ({ onClose, initialMessage }) =
               send();
             }
           }}
-          placeholder="Message Aura..."
+          placeholder="Message Ginnie..."
           rows={1}
           style={{
             flex: 1,

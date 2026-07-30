@@ -1,7 +1,7 @@
 """
-Aura AI Coach — Claude API integration using streaming SSE.
+Ginnie AI Coach — Claude API integration using streaming SSE.
 
-Aura is a warm, mystical manifestation guide. She speaks in gentle but
+Ginnie is a warm, mystical manifestation guide. She speaks in gentle but
 confident poetic prose and knows the user's wishes and recent journal history.
 """
 
@@ -18,8 +18,8 @@ from app.models.journal import JournalEntry
 # --- Model configuration ---
 MODEL = "claude-opus-4-7"
 
-# --- Aura's personality system prompt ---
-AURA_SYSTEM = """You are Aura, a warm and mystical AI manifestation coach within the Dream Life app.
+# --- Ginnie's personality system prompt ---
+AURA_SYSTEM = """You are Ginnie, a warm and mystical AI manifestation coach within the Dream Life app.
 
 Your essence:
 - You speak in gentle, confident poetic prose — like a wise friend who sees the universe's abundance
@@ -97,7 +97,7 @@ async def stream_aura_response(
     screen: Optional[str] = None,
 ) -> AsyncIterator[str]:
     """
-    Stream Aura's response as Server-Sent Events (SSE).
+    Stream Ginnie's response as Server-Sent Events (SSE).
 
     Yields SSE-formatted strings:
       data: {"type": "delta", "text": "..."}\\n\\n
@@ -193,7 +193,7 @@ Rules: the 3 methods must differ in effort level (include at least one micro/low
         return []
 
 
-REFINE_AFFIRMATION_SYSTEM = """You are Aura, a warm manifestation guide who rewrites affirmations to be maximally effective.
+REFINE_AFFIRMATION_SYSTEM = """You are Ginnie, a warm manifestation guide who rewrites affirmations to be maximally effective.
 
 Rewrite the user's affirmation so it follows ALL seven rules below:
 1. Use the Present Tense — write as if it's happening right now ("I am", "I am choosing"), avoid "I will be"/"I am going to".
@@ -207,7 +207,7 @@ Rewrite the user's affirmation so it follows ALL seven rules below:
 
 def refine_affirmation(text: str, method: Optional[str] = None) -> dict:
     """
-    Ask Aura (Claude) to rewrite the user's affirmation so it follows the seven
+    Ask Ginnie (Claude) to rewrite the user's affirmation so it follows the seven
     affirmation rules. Returns {"refined","tips","changed"}.
 
     On ANY failure (missing key, API error, invalid JSON) falls back to a

@@ -83,7 +83,7 @@ export const TutorialScreen: React.FC = () => {
   // Reference mode: opened from the Guide tab for a single practice.
   const reference = !!focusLesson;
 
-  // Per-lesson practice capture (write + Aura refine, or file upload)
+  // Per-lesson practice capture (write + Ginnie refine, or file upload)
   const [draft, setDraft] = useState('');
   const [refined, setRefined] = useState<{ text: string; tips: string[]; changed: boolean } | null>(null);
   const [refining, setRefining] = useState(false);
@@ -118,7 +118,7 @@ export const TutorialScreen: React.FC = () => {
       const res = await refineAffirmation(draft.trim(), currentKey);
       setRefined({ text: res.refined, tips: res.tips, changed: res.changed });
     } catch {
-      setRefined({ text: draft.trim(), tips: ['Aura is resting — keep your words for now ✦'], changed: false });
+      setRefined({ text: draft.trim(), tips: ['Ginnie is resting — keep your words for now ✦'], changed: false });
     } finally {
       setRefining(false);
     }
@@ -278,7 +278,7 @@ export const TutorialScreen: React.FC = () => {
         </div>
       </div>
 
-      {/* Aura tip card */}
+      {/* Ginnie tip card */}
       <div style={{ padding: '22px 20px 0' }}>
         <div
           style={{
@@ -292,7 +292,7 @@ export const TutorialScreen: React.FC = () => {
             <DLAura size={44} glow={false} />
             <div style={{ flex: 1 }}>
               <DLLabel style={{ color: 'rgba(255,255,255,0.45)', marginBottom: 8, display: 'block' }}>
-                Aura says ✦
+                Ginnie says ✦
               </DLLabel>
               <p
                 style={{
@@ -359,7 +359,7 @@ export const TutorialScreen: React.FC = () => {
         </div>
       )}
 
-      {/* Practice it now — write + Aura refine (text) OR upload (media) */}
+      {/* Practice it now — write + Ginnie refine (text) OR upload (media) */}
       <div style={{ padding: '22px 20px 0' }}>
         <DLLabel style={{ color: 'rgba(33,31,26,0.5)', marginBottom: 12, display: 'block' }}>
           {kind === 'text' ? 'Try it now — write your line' : 'Try it now — add your file'}
@@ -409,7 +409,7 @@ export const TutorialScreen: React.FC = () => {
                 opacity: !draft.trim() || refining ? 0.6 : 1,
               }}
             >
-              {refining ? 'Aura is refining…' : '✦ Refine with Aura'}
+              {refining ? 'Ginnie is refining…' : '✦ Refine with Ginnie'}
             </button>
 
             {refined && (
@@ -423,7 +423,7 @@ export const TutorialScreen: React.FC = () => {
                 }}
               >
                 <DLLabel style={{ color: 'rgba(255,255,255,0.45)', marginBottom: 8, display: 'block' }}>
-                  {refined.changed ? "Aura's refined version ✦" : 'Aura says ✦'}
+                  {refined.changed ? "Ginnie's refined version ✦" : 'Ginnie says ✦'}
                 </DLLabel>
                 <p
                   style={{

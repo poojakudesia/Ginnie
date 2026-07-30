@@ -86,8 +86,8 @@ export const DLAura: React.FC<DLAuraProps> = ({
         }}
       >
         <img
-          src="/assets/aura-avatar.jpg"
-          alt="Aura"
+          src="/logo.png"
+          alt="Ginnie"
           style={{
             width: '100%',
             height: '100%',

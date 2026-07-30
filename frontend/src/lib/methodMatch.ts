@@ -18,7 +18,9 @@ export interface ScoredMethod {
  * signal of how a practice will land), then habit style and blocker.
  */
 export const scoreMethods = (answers: MethodQuizAnswers): ScoredMethod[] => {
-  const { modality, habitStyle, blocker } = answers;
+  const { modality, blocker } = answers;
+  // "All in until I burn out" → steer toward sustainable, micro practices.
+  const habitStyle = answers.habitStyle === 'burnout' ? 'micro' : answers.habitStyle;
 
   return METHODS.map((method) => {
     let score = 0;

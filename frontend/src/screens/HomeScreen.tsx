@@ -286,13 +286,13 @@ export const HomeScreen: React.FC = () => {
           </div>
         </DLCard>
 
-        {/* Aura daily message */}
+        {/* Ginnie daily message */}
         <DLCard tone="paper" pad={16} style={{ marginBottom: 20 }}>
           <div style={{ display: 'flex', gap: 14, alignItems: 'flex-start' }}>
             <DLAura size={52} glow={false} />
             <div style={{ flex: 1 }}>
               <DLLabel style={{ color: 'var(--btn)', marginBottom: 6, display: 'block' }}>
-                Aura · daily ✦
+                Ginnie · daily ✦
               </DLLabel>
               <p
                 style={{

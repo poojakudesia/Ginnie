@@ -72,7 +72,7 @@ export const EnergyScreen: React.FC = () => {
           </span>
         ))}
 
-        {/* Aura with energy-scanning rings */}
+        {/* Ginnie with energy-scanning rings */}
         <div
           style={{
             position: 'relative',
@@ -128,7 +128,7 @@ export const EnergyScreen: React.FC = () => {
           }}
         >
           <DLDisplay size="md" center>
-            Aura studied your energy…
+            Ginnie studied your energy…
           </DLDisplay>
 
           {/* Cycling status line */}

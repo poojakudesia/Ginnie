@@ -1,6 +1,6 @@
 """
-Aura AI chat route:
-  POST /aura/chat  — streaming SSE response from Aura (Claude)
+Ginnie AI chat route:
+  POST /aura/chat  — streaming SSE response from Ginnie (Claude)
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -67,7 +67,7 @@ async def aura_chat(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Stream Aura's response to the user's message.
+    Stream Ginnie's response to the user's message.
 
     Returns a Server-Sent Events stream with JSON payloads:
       data: {"type": "delta", "text": "..."}

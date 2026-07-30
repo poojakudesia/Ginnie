@@ -142,23 +142,6 @@ export const WishBuilderScreen: React.FC = () => {
             multiline
             rows={2}
           />
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
-            <button
-              style={{
-                background: 'var(--accent-soft)',
-                border: 'none',
-                borderRadius: 999,
-                padding: '6px 14px',
-                fontFamily: 'var(--mono)',
-                fontSize: 11,
-                color: 'var(--btn)',
-                cursor: 'pointer',
-                letterSpacing: '0.06em',
-              }}
-            >
-              🎙 Voice
-            </button>
-          </div>
         </div>
 
         <div>

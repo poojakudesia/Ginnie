@@ -41,6 +41,7 @@ const QUESTIONS: Question[] = [
       { id: 'intuitive',  icon: '🌊', label: 'I go with my mood — rigid routines kill it for me' },
       { id: 'micro',      icon: '⏱️', label: 'Tiny rituals, 5 minutes max' },
       { id: 'immersive',  icon: '🌙', label: 'Fewer but deep, immersive sessions' },
+      { id: 'burnout',    icon: '🔥', label: 'All in, until I burn out and quit' },
     ],
   },
   {
@@ -94,7 +95,7 @@ export const QuestionsScreen: React.FC = () => {
     if (!current) return;
     if (isLast) {
       // Persist the full set of answers to the profile, then run the
-      // "Aura studied your energy…" interstitial before the match
+      // "Ginnie studied your energy…" interstitial before the match
       setMethodQuiz(answers as MethodQuizAnswers);
       goto('energy');
     } else {

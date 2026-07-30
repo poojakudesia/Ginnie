@@ -10,7 +10,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const config: CapacitorConfig = {
   appId: 'com.dreamlife.app',
-  appName: 'Dream Life',
+  appName: 'My Ginnie',
   webDir: 'dist',
   backgroundColor: '#FCF1F0',
   plugins: {
