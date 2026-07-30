@@ -23,9 +23,9 @@ Terms you'll see:
 2. Connect your GitHub → pick repo **poojakudesia/Ginnie** → **Apply**.
    Render reads the included `render.yaml` and creates the server + database automatically.
 3. When it finishes, click the **dreamlife-api** service. Under the name is a link like
-   `https://dreamlife-api.onrender.com` — **copy it**.
+   `https://api.myginnie.life` — **copy it**.
 4. Test it: open that link with `/health` on the end in your browser
-   (`https://dreamlife-api.onrender.com/health`). You should see `{"status":"ok"}`.
+   (`https://api.myginnie.life/health`). You should see `{"status":"ok"}`.
    *(First load can take ~50s — the free server "wakes up".)*
 5. (Optional, for AI features) In the service → **Environment** → add
    `ANTHROPIC_API_KEY` = your key from console.anthropic.com. Without it the app still
@@ -39,7 +39,7 @@ Easiest free way, using GitHub Pages:
 2. Under "Build and deployment", Source = **Deploy from a branch**, Branch = **main**,
    folder = **/ (root)** → **Save**.
 3. Wait ~2 min. Your policy will be live at:
-   `https://poojakudesia.github.io/Ginnie/store-assets/privacy-policy.html`
+   `https://myginnie.life/privacy`
 4. Open that link to confirm it loads. **Copy it** — you'll paste it into Play.
    *(Want a different contact email in it? Edit `store-assets/privacy-policy.html` first.)*
 
@@ -49,7 +49,7 @@ Easiest free way, using GitHub Pages:
 Open **Terminal** and run (replace the URL if yours differs):
 ```bash
 cd ~/Ginnie/frontend
-sed -i '' "s|^VITE_API_BASE_URL=.*|VITE_API_BASE_URL=https://dreamlife-api.onrender.com|" .env
+sed -i '' "s|^VITE_API_BASE_URL=.*|VITE_API_BASE_URL=https://api.myginnie.life|" .env
 export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 npm run mobile:build

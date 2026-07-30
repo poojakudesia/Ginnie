@@ -36,8 +36,8 @@ Primary: Lifestyle · Secondary: Health & Fitness
 4+ / Everyone
 
 ## Required URLs
-- Privacy Policy: https://yourdomain.com/privacy  (REQUIRED — must be live)
-- Support: https://yourdomain.com/support
+- Privacy Policy: https://myginnie.life/privacy  (REQUIRED — must be live)
+- Support: https://myginnie.life/support
 
 ## Screenshots to capture (portrait)
 1. Welcome — "Hi, I'm your personal Ginnie"

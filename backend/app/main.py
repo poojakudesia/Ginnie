@@ -20,6 +20,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         settings.FRONTEND_URL,
+        "https://myginnie.life",
+        "https://www.myginnie.life",
         "http://localhost:5173",
         "http://127.0.0.1:5173",
         # Capacitor native app origins (iOS / Android WebView)

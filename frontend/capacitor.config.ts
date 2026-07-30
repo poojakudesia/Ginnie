@@ -5,7 +5,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  * for the App Store / Google Play.
  *
  * IMPORTANT: a packaged app has no Vite dev proxy, so build with an absolute
- * backend URL:  VITE_API_BASE_URL=https://api.yourdomain.com npm run build
+ * backend URL:  VITE_API_BASE_URL=https://api.myginnie.life npm run build
  * (see src/api/client.ts).
  */
 const config: CapacitorConfig = {

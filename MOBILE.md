@@ -25,12 +25,12 @@ apps can't reach `localhost:8000`. Point the app at it with `VITE_API_BASE_URL`.
 ```bash
 cd frontend
 cp .env.example .env
-# edit .env →  VITE_API_BASE_URL=https://api.yourdomain.com   (backend root, no /api)
+# edit .env →  VITE_API_BASE_URL=https://api.myginnie.life   (backend root, no /api)
 ```
 
 On the backend, allow your app + web origins (already includes the Capacitor
 origins). For a production web origin, set `CORS_ORIGIN_REGEX` in the backend env,
-e.g. `CORS_ORIGIN_REGEX=https://.*\.yourdomain\.com`.
+e.g. `CORS_ORIGIN_REGEX=https://(.*\.)?myginnie\.life`.
 
 ---
 
@@ -133,7 +133,7 @@ buildTypes {
 
 ### 6c. Build the release AAB (points at your HTTPS backend)
 ```bash
-# .env → VITE_API_BASE_URL=https://dreamlife-api.onrender.com   (your deployed URL)
+# .env → VITE_API_BASE_URL=https://api.myginnie.life   (your deployed URL)
 npm run mobile:build
 cd android
 ./gradlew bundleRelease
@@ -156,7 +156,7 @@ The app is a valid installable PWA (`manifest.webmanifest` + icons + HTTPS). You
 can wrap it for Play without Android Studio using **Bubblewrap**:
 
 ```bash
-npx @bubblewrap/cli init --manifest https://yourdomain.com/manifest.webmanifest
+npx @bubblewrap/cli init --manifest https://myginnie.life/manifest.webmanifest
 npx @bubblewrap/cli build
 ```
 
