@@ -1,72 +1,74 @@
-/* Rasterize the app logo into every icon/splash size stores + PWA need.
-   Source priority: resources/logo.png (your brand logo) → else resources/icon.svg
-   Also copies the logo to public/logo.png for the in-app avatar.
-   Run: node scripts/gen-icons.cjs   (or: npm run icons) */
+/* Generate every app icon / splash / PWA image from your logo — using macOS's
+   built-in `sips` (no extra install). Run: npm run icons
+   Source: resources/logo.png  (fallbacks: assets/logo.png, public/logo.png)
+*/
 const fs = require('fs');
 const path = require('path');
-const { chromium } = require('/opt/node22/lib/node_modules/playwright');
+const { execSync } = require('child_process');
 
 const ROOT = path.resolve(__dirname, '..');
-const LOGO = path.join(ROOT, 'resources', 'logo.png');
-const useLogo = fs.existsSync(LOGO);
+const CANDIDATES = ['resources/logo.png', 'assets/logo.png', 'public/logo.png'];
+const src = CANDIDATES.map((p) => path.join(ROOT, p)).find((p) => fs.existsSync(p));
 
-// Foreground markup: the logo <img> if provided, else the fallback SVG.
-let art;
-if (useLogo) {
-  const b64 = fs.readFileSync(LOGO).toString('base64');
-  art = `<img src="data:image/png;base64,${b64}" style="width:100%;height:100%;object-fit:cover" />`;
-  // Make the logo available to the running app (welcome avatar, etc.)
-  fs.copyFileSync(LOGO, path.join(ROOT, 'public', 'logo.png'));
-  console.log('using resources/logo.png (also copied to public/logo.png)');
-} else {
-  art = fs.readFileSync(path.join(ROOT, 'resources', 'icon.svg'), 'utf8');
-  console.log('resources/logo.png not found — using the fallback sparkle SVG');
+if (!src) {
+  console.error(
+    '\n⚠️  No logo found. Save your logo image to:\n' +
+    '    frontend/resources/logo.png\n' +
+    'then run `npm run icons` again.\n',
+  );
+  process.exit(1);
 }
 
-// [outfile, size, background]
-const TARGETS = [
-  ['public/icon-192.png', 192, null],
-  ['public/icon-512.png', 512, null],
-  ['public/icon-512-maskable.png', 512, null],
-  ['public/apple-touch-icon.png', 180, '#7C3763'],
-  ['public/favicon-32.png', 32, null],
-  ['public/icon-1024.png', 1024, '#7C3763'],
-  ['resources/icon-1024.png', 1024, '#7C3763'],  // for @capacitor/assets
+// sips must exist (macOS). If not, bail gracefully.
+try {
+  execSync('command -v sips', { stdio: 'ignore' });
+} catch {
+  console.error('`sips` not found — this icon generator needs macOS. Skipping.');
+  process.exit(0);
+}
+
+const BG = '7C3763'; // brand color (no #)
+const sq = (input, size, out) =>
+  execSync(`sips -s format png -z ${size} ${size} "${input}" --out "${out}"`, { stdio: 'ignore' });
+
+const ensureDir = (p) => fs.mkdirSync(path.dirname(p), { recursive: true });
+
+// 1) In-app avatar (Welcome hero etc.) — just a copy
+const publicLogo = path.join(ROOT, 'public', 'logo.png');
+ensureDir(publicLogo);
+fs.copyFileSync(src, publicLogo);
+console.log('✓ public/logo.png');
+
+// 2) PWA / web + favicon icons
+const ICONS = [
+  ['public/icon-192.png', 192],
+  ['public/icon-512.png', 512],
+  ['public/icon-512-maskable.png', 512],
+  ['public/apple-touch-icon.png', 180],
+  ['public/favicon-32.png', 32],
+  ['public/icon-1024.png', 1024],
+  ['resources/icon-1024.png', 1024],
+  ['assets/icon.png', 1024], // source for @capacitor/assets (native icons)
 ];
+for (const [out, size] of ICONS) {
+  const dest = path.join(ROOT, out);
+  ensureDir(dest);
+  sq(src, size, dest);
+  console.log('✓', out, `${size}x${size}`);
+}
 
-(async () => {
-  const browser = await chromium.launch({
-    executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
-    args: ['--no-sandbox'],
-  });
-  const page = await browser.newPage();
-
-  for (const [out, size, bg] of TARGETS) {
-    const html = `<!doctype html><html><head><meta charset="utf-8"><style>
-      html,body{margin:0;padding:0}
-      #c{width:${size}px;height:${size}px;${bg ? `background:${bg};` : ''}display:flex;overflow:hidden}
-      #c svg,#c img{width:100%;height:100%}
-    </style></head><body><div id="c">${art}</div></body></html>`;
-    await page.setViewportSize({ width: size, height: size });
-    await page.setContent(html, { waitUntil: 'networkidle' });
-    const el = await page.$('#c');
-    await el.screenshot({ path: path.join(ROOT, out), omitBackground: !bg });
-    console.log('wrote', out, `${size}x${size}`);
+// 3) Splash 2732×2732 — logo centered on the brand color
+const tmp = path.join(ROOT, '.tmp-logo.png');
+const splashes = [path.join(ROOT, 'assets', 'splash.png'), path.join(ROOT, 'resources', 'splash-2732.png')];
+try {
+  sq(src, 1100, tmp);
+  for (const out of splashes) {
+    ensureDir(out);
+    execSync(`sips -p 2732 2732 --padColor ${BG} "${tmp}" --out "${out}"`, { stdio: 'ignore' });
+    console.log('✓', path.relative(ROOT, out), '2732x2732');
   }
+} finally {
+  if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
+}
 
-  // Splash screen 2732x2732 (centered mark on brand gradient)
-  const splashHtml = `<!doctype html><html><head><meta charset="utf-8"><style>
-    html,body{margin:0;padding:0}
-    #c{width:2732px;height:2732px;background:linear-gradient(135deg,#8E4472,#7C3763 55%,#4B2450);
-       display:flex;align-items:center;justify-content:center}
-    #m{width:1100px;height:1100px;border-radius:120px;overflow:hidden;display:flex}
-    #m svg,#m img{width:100%;height:100%;object-fit:cover}
-  </style></head><body><div id="c"><div id="m">${art}</div></div></body></html>`;
-  await page.setViewportSize({ width: 2732, height: 2732 });
-  await page.setContent(splashHtml, { waitUntil: 'networkidle' });
-  const sc = await page.$('#c');
-  await sc.screenshot({ path: path.join(ROOT, 'resources', 'splash-2732.png') });
-  console.log('wrote resources/splash-2732.png 2732x2732');
-
-  await browser.close();
-})().catch((e) => { console.error(e); process.exit(1); });
+console.log('\nDone. Native launcher icons: run `npm run cap:assets` next.');
