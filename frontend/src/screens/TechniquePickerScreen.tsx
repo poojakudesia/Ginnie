@@ -67,15 +67,29 @@ export const TechniquePickerScreen: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const startPractice = (method: Method) => {
-    // Adopt all three recommended practices, lead with the chosen one
+  const adopt = (lead?: Method) => {
     const ids = Array.from(
-      new Set([method.appId, ...recs.map((r) => r.method.appId).filter((id) => id !== method.appId)]),
+      new Set([
+        ...(lead ? [lead.appId] : []),
+        ...recs.map((r) => r.method.appId),
+      ]),
     );
     setTechniques(ids);
     saveTechniques(ids); // persist to profile → "started practice" on next login
-    setFocusLesson(null); // onboarding runs the full tutorial, not reference mode
+    setFocusLesson(null);
+    return ids;
+  };
+
+  // "See tutorial" — adopt the practices and walk through the lessons
+  const startPractice = (method: Method) => {
+    adopt(method);
     goto('tutorial');
+  };
+
+  // "I'm good — let's start" — adopt the practices and skip to the plan
+  const letsStart = () => {
+    adopt();
+    goto('plan');
   };
 
   const applySwap = (method: Method) => {
@@ -216,7 +230,7 @@ export const TechniquePickerScreen: React.FC = () => {
                       cursor: 'pointer',
                     }}
                   >
-                    Start this practice →
+                    See tutorial →
                   </button>
                   <button
                     onClick={() => setSwapIndex(i)}
@@ -242,6 +256,30 @@ export const TechniquePickerScreen: React.FC = () => {
             );
           })}
         </div>
+
+        {/* Ready to go — skip the tutorials and begin */}
+        <button
+          onClick={letsStart}
+          style={{
+            width: '100%',
+            marginBottom: 36,
+            padding: '16px 20px',
+            borderRadius: 999,
+            border: 'none',
+            background: 'linear-gradient(135deg, var(--btn), var(--btn-deep))',
+            color: 'var(--btn-text)',
+            fontFamily: 'var(--sans)',
+            fontSize: 16,
+            fontWeight: 600,
+            cursor: 'pointer',
+            boxShadow: '0 10px 24px rgba(124,55,99,0.28)',
+          }}
+        >
+          I'm good with these — let's start ✦
+        </button>
+        <p style={{ textAlign: 'center', fontFamily: 'var(--sans)', fontSize: 12.5, color: 'var(--muted)', marginTop: -24, marginBottom: 28 }}>
+          Tap “See tutorial” on any card to learn it first.
+        </p>
       </div>
 
       {/* Swap overlay — pick from all other practices */}

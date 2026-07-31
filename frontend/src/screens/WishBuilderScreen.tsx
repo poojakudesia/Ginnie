@@ -24,16 +24,21 @@ export const WishBuilderScreen: React.FC = () => {
   const [progress, setProgress] = useState(0);
   const [timeline, setTimeline] = useState('');
   const [goalTouched, setGoalTouched] = useState(false);
+  const [whyTouched, setWhyTouched] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Only wishes still being pursued count toward the cap of 3.
   const activeCount = wishes.filter((w) => !w.is_manifested).length;
   const wishIndex = activeCount;
 
-  // Validation: a real, readable goal (not random/gibberish text)
+  // Validation: real, readable text (not random/gibberish) for goal + why
   const isGibberish = goal.trim().length > 0 && looksLikeGibberish(goal);
   const goalError = goalTouched && isGibberish
     ? 'Please write a real goal in a few words — that doesn’t look like one yet.'
+    : '';
+  const whyGibberish = why.trim().length > 0 && looksLikeGibberish(why);
+  const whyError = whyTouched && whyGibberish
+    ? 'Tell us in a few real words why this matters.'
     : '';
 
   // Ginnie's Insight — only once we have a genuine goal + category + timeline
@@ -42,7 +47,7 @@ export const WishBuilderScreen: React.FC = () => {
       ? analyzeWish(goal, category, timeline)
       : null;
 
-  const canContinue = !!(goal && category && why && timeline) && !isGibberish && !saving;
+  const canContinue = !!(goal && category && why && timeline) && !isGibberish && !whyGibberish && !saving;
   // Room for more after saving this one? (cap of 3 active wishes)
   const canAddAnother = activeCount < 2;
 
@@ -159,6 +164,8 @@ export const WishBuilderScreen: React.FC = () => {
           label="Why does this matter to you?"
           value={why}
           onChange={setWhy}
+          onBlur={() => setWhyTouched(true)}
+          error={whyError}
           placeholder="Because I want to feel financially free and..."
           multiline
           rows={3}

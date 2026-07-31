@@ -144,7 +144,7 @@ export const TrackerScreen: React.FC = () => {
       <input
         ref={hiddenInputRef}
         type="file"
-        accept="image/*"
+        accept="image/*,video/*"
         onChange={onProofSelected}
         style={{ display: 'none' }}
       />
@@ -294,18 +294,20 @@ export const TrackerScreen: React.FC = () => {
                               style={{ width: 34, height: 34, borderRadius: 8, objectFit: 'cover', flexShrink: 0, border: '1px solid var(--line)' }}
                             />
                           ) : check?.proofName ? (
-                            <span style={{ fontFamily: 'var(--mono)', fontSize: 9, color: 'var(--muted)', flexShrink: 0 }}>✓ proof</span>
+                            <span title="Proof added" style={{ fontSize: 18, color: 'var(--btn)', flexShrink: 0 }}>🖼️</span>
                           ) : (
                             <button
                               onClick={() => openProofPicker(key, id)}
+                              aria-label="Upload a photo or video as proof"
                               style={{
                                 flexShrink: 0, cursor: 'pointer',
-                                background: 'var(--accent-soft)', border: 'none', borderRadius: 999,
-                                padding: '6px 11px', fontFamily: 'var(--mono)', fontSize: 9.5,
-                                letterSpacing: '0.04em', color: 'var(--btn)',
+                                width: 34, height: 34, borderRadius: 10,
+                                background: 'var(--accent-soft)', border: 'none',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 17, color: 'var(--btn)',
                               }}
                             >
-                              ＋ proof
+                              📷
                             </button>
                           )
                         )}

@@ -18,42 +18,48 @@ const TIMELINE_MONTHS: Record<string, number> = {
 const humanTimeline = (t: string): string =>
   ({ '3m': '3 months', '6m': '6 months', '1y': 'a year', '3y': '3 years' }[t] || t);
 
+// Does a single token read like a real word?
+const looksRealWord = (letters: string): boolean => {
+  if (letters.length === 0) return false;
+  const vowels = (letters.match(/[aeiou]/g) || []).length;
+  // Short tokens with no vowel are usually valid abbreviations/units (kg, tv, mm)
+  if (vowels === 0) return letters.length <= 3;
+  // Random strings tend to have long consonant OR vowel runs
+  if (/[bcdfghjklmnpqrstvwxyz]{4,}/.test(letters)) return false;
+  if (/[aeiou]{4,}/.test(letters)) return false;
+  const ratio = vowels / letters.length;
+  if (ratio < 0.15 || ratio > 0.85) return false;
+  return true;
+};
+
 /**
- * Heuristic gibberish / nonsense detector for the goal field.
- * Deliberately lenient — it should only catch clearly random input
- * (keyboard mashing, a single nonsense token), never real phrases.
+ * Heuristic gibberish / nonsense detector for a goal / "why" field.
+ * Accepts real sentences (even with numbers/units) but rejects keyboard
+ * mashing and random character strings.
  */
 export const looksLikeGibberish = (raw: string): boolean => {
   const text = raw.trim().toLowerCase();
-  if (text.length < 4) return true;
+  if (text.replace(/[^a-z]/g, '').length < 3) return true;
 
-  const words = text.split(/\s+/).filter(Boolean);
-
-  // A "real" word: 2+ letters and contains a vowel.
-  const realWords = words.filter((w) => {
-    const letters = w.replace(/[^a-z]/g, '');
-    return letters.length >= 2 && /[aeiou]/.test(letters);
-  });
-
-  // Two or more real words = a genuine phrase. Accept it.
-  if (realWords.length >= 2) return false;
-
-  // Obvious keyboard mashing anywhere.
-  if (/(asdf|sdfg|dfgh|qwer|wert|erty|zxcv|xcvb|hjkl|uiop|poiu)/.test(text)) return true;
-  // Same character hammered 5+ times ("aaaaa").
+  // Obvious keyboard mashing / hammered characters.
+  if (/(asdf|sdfg|dfgh|fghj|qwer|wert|erty|rtyu|zxcv|xcvb|cvbn|hjkl|uiop|poiu|mnbv)/.test(text)) return true;
   if (/(.)\1{4,}/.test(text)) return true;
 
-  // Single-token input: judge that token on its own merits.
-  const letters = text.replace(/[^a-z]/g, '');
-  if (letters.length < 3) return true;
-  const vowels = (letters.match(/[aeiou]/g) || []).length;
-  const vowelRatio = vowels / letters.length;
-  if (vowelRatio < 0.15 || vowelRatio > 0.9) return true;
-  // A very long consonant run inside one word is nonsense-like.
-  if (/[bcdfghjklmnpqrstvwxyz]{6,}/.test(letters)) return true;
+  // Judge each alphabetic word.
+  const alphaWords = text
+    .split(/\s+/)
+    .map((w) => w.replace(/[^a-z]/g, ''))
+    .filter((w) => w.length > 0);
+  if (alphaWords.length === 0) return true;
 
-  // One real word (e.g. "wealth") is fine; zero means gibberish.
-  return realWords.length === 0;
+  const realCount = alphaWords.filter(looksRealWord).length;
+  if (realCount === 0) return true;
+  // Most words must read like real words.
+  if (realCount / alphaWords.length < 0.6) return true;
+  // A single-word entry must be a proper word (≥3 letters, real-looking).
+  if (alphaWords.length === 1 && alphaWords[0].length < 3) return true;
+
+  return false;
 };
 
 const kgFromUnit = (amount: number, unit: string): number =>
