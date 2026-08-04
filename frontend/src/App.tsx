@@ -50,13 +50,24 @@ function AppContent() {
 
   useEffect(() => { applyPalette(palette); }, [palette]);
 
-  // Durability: when the app opens for a logged-in user, make sure wishes are
-  // loaded from the backend (the source of truth) even without re-logging in.
+  // Durability: on app open, load wishes from the backend — but NEVER drop
+  // wishes already held on the device. If local is empty, adopt the server
+  // list; otherwise keep local and only add server wishes we don't have.
   useEffect(() => {
     if (!token) return;
     getWishes()
       .then((server) => {
-        if (server && server.length > 0) useAppStore.getState().setWishes(server);
+        if (!server || server.length === 0) return;
+        const local = useAppStore.getState().wishes;
+        if (local.length === 0) {
+          useAppStore.getState().setWishes(server);
+          return;
+        }
+        const localIds = new Set(local.map((w) => w.id));
+        const additions = server.filter((w) => !localIds.has(w.id));
+        if (additions.length > 0) {
+          useAppStore.getState().setWishes([...local, ...additions]);
+        }
       })
       .catch(() => {});
     // run once per app open

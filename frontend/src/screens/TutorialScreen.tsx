@@ -416,13 +416,14 @@ export const TutorialScreen: React.FC = () => {
               <div
                 style={{
                   marginTop: 12,
-                  background: '#211F1A',
+                  background: '#F3E1EC',            // light brand plum
+                  border: '1px solid rgba(124,55,99,0.18)',
                   borderRadius: 18,
                   padding: 16,
                   animation: 'dlFadeUp 0.35s ease',
                 }}
               >
-                <DLLabel style={{ color: 'rgba(255,255,255,0.45)', marginBottom: 8, display: 'block' }}>
+                <DLLabel style={{ color: '#7C3763', marginBottom: 8, display: 'block' }}>
                   {refined.changed ? "Ginnie's refined version ✦" : 'Ginnie says ✦'}
                 </DLLabel>
                 <p
@@ -430,7 +431,7 @@ export const TutorialScreen: React.FC = () => {
                     fontFamily: 'var(--serif)',
                     fontStyle: 'italic',
                     fontSize: 17,
-                    color: '#fff',
+                    color: '#3B1F26',
                     lineHeight: 1.45,
                     margin: 0,
                   }}
@@ -441,8 +442,8 @@ export const TutorialScreen: React.FC = () => {
                   <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 5 }}>
                     {refined.tips.map((t, i) => (
                       <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-                        <span style={{ color: '#C4A96A', fontSize: 12, flexShrink: 0 }}>✓</span>
-                        <span style={{ fontFamily: 'var(--sans)', fontSize: 12.5, color: 'rgba(255,255,255,0.7)', lineHeight: 1.4 }}>
+                        <span style={{ color: '#7C3763', fontSize: 12, flexShrink: 0 }}>✓</span>
+                        <span style={{ fontFamily: 'var(--sans)', fontSize: 12.5, color: '#5A3040', lineHeight: 1.4 }}>
                           {t}
                         </span>
                       </div>
@@ -457,8 +458,8 @@ export const TutorialScreen: React.FC = () => {
                       width: '100%',
                       padding: '10px 16px',
                       borderRadius: 999,
-                      border: '1.5px solid rgba(255,255,255,0.3)',
-                      background: 'transparent',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, #7C3763, #5B2D5E)',
                       color: '#fff',
                       fontFamily: 'var(--sans)',
                       fontSize: 13,
